@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#f4f1e8">
+  <meta name="color-scheme" content="light">
+  <title>Smart Novel Forge — Light Multi-DB Studio</title>
+  <style>
+    :root{
+      --bg:#070b14;
+      --bg-2:#0b1020;
+      --panel:#101728;
+      --panel-2:#141d31;
+      --panel-3:#18233b;
+      --line:#25324c;
+      --text:#f5f7fb;
+      --muted:#93a4bd;
+      --soft:#c9d4e4;
+      --accent:#8b5cf6;
+      --accent-2:#22d3ee;
+      --green:#34d399;
+      --yellow:#fbbf24;
+      --red:#fb7185;
+      --blue:#60a5fa;
+      --shadow:0 18px 55px rgba(0,0,0,.28);
+      --radius:18px;
+      --sidebar:244px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:
+      radial-gradient(circle at 15% 0%,rgba(139,92,246,.12),transparent 28%),
+      radial-gradient(circle at 90% 10%,rgba(34,211,238,.07),transparent 30%),
+      var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    a{color:inherit}
+    .hidden{display:none!important}
+    .app{min-height:100vh;display:grid;grid-template-columns:var(--sidebar) 1fr}
+    .sidebar{
+      position:fixed;inset:0 auto 0 0;width:var(--sidebar);padding:18px 14px 16px;
+      background:rgba(8,13,24,.92);backdrop-filter:blur(18px);border-right:1px solid rgba(255,255,255,.06);
+      display:flex;flex-direction:column;z-index:40
+    }
+    .brand{display:flex;align-items:center;gap:11px;padding:7px 8px 18px}
+    .logo{
+      width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:900;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 10px 30px rgba(139,92,246,.3)
+    }
+    .brand strong{display:block;font-size:14px;letter-spacing:.3px}
+    .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+    .nav{display:flex;flex-direction:column;gap:4px}
+    .nav button{
+      border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:12px;
+      display:flex;align-items:center;gap:10px;text-align:left;font-weight:650;font-size:13px
+    }
+    .nav button:hover{background:rgba(255,255,255,.04);color:var(--text)}
+    .nav button.active{background:linear-gradient(90deg,rgba(139,92,246,.20),rgba(34,211,238,.06));color:#fff;border:1px solid rgba(139,92,246,.25)}
+    .nav .ico{width:22px;text-align:center;font-size:16px}
+    .side-bottom{margin-top:auto}
+    .session-chip{
+      padding:11px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);
+      font-size:11px;color:var(--muted)
+    }
+    .session-chip b{display:block;color:var(--soft);font-size:12px;margin-bottom:3px}
+    .main{grid-column:2;min-width:0}
+    .topbar{
+      position:sticky;top:0;z-index:30;height:68px;padding:12px 24px;display:flex;align-items:center;gap:14px;
+      background:rgba(7,11,20,.78);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.055)
+    }
+    .novel-select{
+      min-width:280px;max-width:520px;flex:1;display:flex;align-items:center;gap:10px;
+      padding:9px 12px;border-radius:13px;border:1px solid var(--line);background:var(--panel);color:var(--text)
+    }
+    .novel-select select{flex:1;background:transparent;border:0;color:var(--text);outline:none;min-width:0}
+    .novel-select option{background:#101728}
+    .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 15px var(--green)}
+    .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.025);padding:8px 11px;border-radius:999px;font-size:12px;color:var(--soft)}
+    .icon-btn,.btn{
+      border:1px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:12px;padding:9px 12px;font-weight:700
+    }
+    .icon-btn{width:38px;height:38px;padding:0;display:grid;place-items:center}
+    .btn:hover,.icon-btn:hover{border-color:#3c4f75;transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),#6d4cf5);border-color:transparent}
+    .btn.cyan{background:linear-gradient(135deg,#0891b2,#0e7490);border-color:transparent}
+    .btn.green{background:linear-gradient(135deg,#059669,#047857);border-color:transparent}
+    .btn.danger{background:rgba(244,63,94,.12);color:#fecdd3;border-color:rgba(244,63,94,.25)}
+    .btn.ghost{background:transparent}
+    .btn.small{padding:7px 9px;font-size:12px;border-radius:10px}
+    .btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+    .content{padding:26px;max-width:1600px;margin:0 auto}
+    .page{display:none}
+    .page.active{display:block}
+    .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:22px}
+    .page-head h1{margin:0;font-size:27px;letter-spacing:-.6px}
+    .page-head p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:820px}
+    .head-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .grid{display:grid;gap:16px}
+    .grid.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .grid.two{grid-template-columns:minmax(0,1.5fr) minmax(320px,.85fr)}
+    .grid.equal{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{
+      background:linear-gradient(180deg,rgba(19,28,48,.95),rgba(14,21,36,.96));border:1px solid rgba(255,255,255,.07);
+      border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden
+    }
+    .card.pad{padding:18px}
+    .card-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .card-head h3{margin:0;font-size:14px}
+    .card-head span{font-size:11px;color:var(--muted)}
+    .kpi{padding:18px;min-height:122px;position:relative;overflow:hidden}
+    .kpi:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-24px;top:-24px;background:rgba(139,92,246,.08)}
+    .kpi .label{font-size:12px;color:var(--muted);font-weight:700}
+    .kpi .value{font-size:30px;font-weight:900;letter-spacing:-1px;margin-top:10px}
+    .kpi .sub{font-size:11px;color:var(--muted);margin-top:5px}
+    .hero{padding:22px}
+    .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.6px;color:var(--accent-2);font-weight:900}
+    .hero h2{font-size:28px;line-height:1.12;letter-spacing:-.7px;margin:8px 0 9px}
+    .meta-row{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+    .tag{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--soft)}
+    .progress{height:8px;border-radius:999px;background:#0a0f1a;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+    .progress>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0}
+    .progress.large{height:10px}
+    .quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+    .action-tile{
+      min-height:88px;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:14px;padding:13px;
+      color:var(--text);text-align:left
+    }
+    .action-tile:hover{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.35)}
+    .action-tile b{display:block;font-size:13px;margin-top:8px}
+    .action-tile span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+    .job-card{padding:17px}
+    .job-title{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .job-title strong{font-size:14px}
+    .status{font-size:10px;font-weight:900;letter-spacing:.5px;padding:5px 8px;border-radius:999px}
+    .status.RUNNING,.status.QUEUED{background:rgba(96,165,250,.12);color:#bfdbfe}
+    .status.DONE,.status.APPROVED{background:rgba(52,211,153,.12);color:#a7f3d0}
+    .status.ERROR,.status.FAILED,.status.REJECTED{background:rgba(251,113,133,.12);color:#fecdd3}
+    .status.WAITING_APPROVAL{background:rgba(251,191,36,.12);color:#fde68a}
+    .muted{color:var(--muted)}
+    .tiny{font-size:11px}
+    .empty{padding:34px;text-align:center;color:var(--muted)}
+    .list{display:flex;flex-direction:column}
+    .list-row{
+      display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.055)
+    }
+    .list-row:last-child{border-bottom:0}
+    .list-row .grow{flex:1;min-width:0}
+    .list-row b{font-size:13px}
+    .list-row p{margin:3px 0 0;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .badge-num{min-width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(139,92,246,.12);color:#ddd6fe;font-weight:900;font-size:12px}
+    .section-title{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:900;margin:22px 0 10px}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field.full{grid-column:1/-1}
+    .field label{font-size:11px;color:var(--muted);font-weight:800}
+    .field input,.field textarea,.field select{
+      width:100%;border:1px solid var(--line);background:#0b1220;color:var(--text);border-radius:12px;padding:11px 12px;outline:none
+    }
+    .field textarea{min-height:110px;resize:vertical}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(139,92,246,.65);box-shadow:0 0 0 3px rgba(139,92,246,.10)}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .split{display:flex;gap:14px;align-items:stretch}
+    .reader-side{width:280px;flex:0 0 280px}
+    .reader-main{min-width:0;flex:1}
+    .chapter-text{
+      white-space:pre-wrap;font-family:Georgia,"Times New Roman",serif;font-size:17px;line-height:1.8;color:#e9edf5;
+      max-width:840px;margin:0 auto;padding:26px
+    }
+    .chapter-list{max-height:660px;overflow:auto}
+    .chapter-btn{
+      width:100%;border:0;background:transparent;color:var(--muted);padding:10px 12px;text-align:left;border-radius:10px
+    }
+    .chapter-btn:hover,.chapter-btn.active{background:rgba(139,92,246,.10);color:#fff}
+    .metric-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.055)}
+    .metric-line:last-child{border-bottom:0}
+    .metric-line span{font-size:12px;color:var(--muted)}
+    .metric-line b{font-size:12px}
+    .health-item{padding:12px;border-radius:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.055);margin-top:9px}
+    .health-item.good{border-color:rgba(52,211,153,.18)}
+    .health-item.warn{border-color:rgba(251,191,36,.22)}
+    .health-item.bad{border-color:rgba(251,113,133,.22)}
+    .codebox{white-space:pre-wrap;word-break:break-word;background:#080d17;border:1px solid var(--line);padding:14px;border-radius:12px;color:#cbd5e1;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:480px;overflow:auto}
+    .novel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+    .novel-card{padding:17px;display:flex;flex-direction:column;min-height:220px}
+    .novel-card h3{margin:10px 0 7px;font-size:17px;line-height:1.25}
+    .novel-card p{font-size:11px;line-height:1.5;color:var(--muted);margin:0}
+    .novel-card .footer{margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .media-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .media-item{min-height:110px;border:1px solid var(--line);border-radius:14px;padding:13px;background:rgba(255,255,255,.025)}
+    .media-item b{font-size:12px;display:block}
+    .media-item span{font-size:10px;color:var(--muted)}
+    .roadmap-row{display:grid;grid-template-columns:60px 1fr auto;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.055)}
+    .roadmap-row:last-child{border-bottom:0}
+    .roadmap-row .ch{font-weight:900;color:#c4b5fd}
+    .roadmap-row h4{margin:0 0 4px;font-size:13px}
+    .roadmap-row p{margin:0;font-size:11px;color:var(--muted);line-height:1.45}
+    .toast-wrap{position:fixed;top:80px;right:18px;z-index:100;display:flex;flex-direction:column;gap:8px;max-width:360px}
+    .toast{padding:12px 14px;border-radius:12px;background:#111827;border:1px solid var(--line);box-shadow:var(--shadow);font-size:12px}
+    .toast.err{border-color:rgba(251,113,133,.35);color:#fecdd3}
+    .toast.ok{border-color:rgba(52,211,153,.3);color:#d1fae5}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);z-index:90;display:grid;place-items:center;padding:18px}
+    .modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#0d1424;border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:17px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .modal-head h3{margin:0;font-size:15px}
+    .modal-body{padding:18px}
+    .modal-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+    .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .skeleton{min-height:100px;border-radius:14px;background:linear-gradient(90deg,#111827 25%,#1a2438 50%,#111827 75%);background-size:220% 100%;animation:shimmer 1.4s infinite}
+    @keyframes shimmer{to{background-position:-220% 0}}
+    .bottom-nav{display:none}
+    .mobile-only{display:none}
+    .danger-zone{border:1px dashed rgba(251,113,133,.28);background:rgba(251,113,133,.045);padding:14px;border-radius:14px}
+    @media(max-width:1100px){
+      .grid.kpis{grid-template-columns:repeat(2,1fr)}
+      .grid.two,.grid.equal{grid-template-columns:1fr}
+      .novel-grid{grid-template-columns:repeat(2,1fr)}
+      .media-grid{grid-template-columns:repeat(3,1fr)}
+    }
+    @media(max-width:760px){
+      :root{--sidebar:0px}
+      .app{display:block}
+      .sidebar{display:none}
+      .main{grid-column:auto;padding-bottom:74px}
+      .topbar{height:auto;min-height:64px;padding:10px 12px}
+      .novel-select{min-width:0;padding:8px 10px}
+      .top-actions .pill{display:none}
+      .content{padding:16px 12px 26px}
+      .page-head{align-items:flex-start;flex-direction:column;margin-bottom:16px}
+      .page-head h1{font-size:23px}
+      .grid.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .kpi{min-height:104px;padding:14px}
+      .kpi .value{font-size:24px}
+      .quick-actions{grid-template-columns:repeat(2,1fr)}
+      .novel-grid{grid-template-columns:1fr}
+      .media-grid{grid-template-columns:repeat(2,1fr)}
+      .form-grid{grid-template-columns:1fr}
+      .split{display:block}
+      .reader-side{width:auto;margin-bottom:12px}
+      .chapter-list{max-height:220px}
+      .chapter-text{padding:17px 13px;font-size:16px}
+      .roadmap-row{grid-template-columns:48px 1fr}
+      .roadmap-row>div:last-child{grid-column:2}
+      .bottom-nav{
+        position:fixed;z-index:60;left:0;right:0;bottom:0;height:65px;display:grid;grid-template-columns:repeat(6,1fr);
+        background:rgba(8,13,24,.95);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);padding-bottom:env(safe-area-inset-bottom)
+      }
+      .bottom-nav button{border:0;background:transparent;color:var(--muted);font-size:10px;font-weight:700}
+      .bottom-nav button span{display:block;font-size:18px;margin-bottom:2px}
+      .bottom-nav button.active{color:#ddd6fe}
+      .mobile-only{display:block}
+    }
+  
+    /* =======================================================================
+       SMART NOVEL FORGE — MONOCHROME EDITORIAL THEME
+       Visual layer only. Existing IDs, JavaScript, and backend calls unchanged.
+       ======================================================================= */
+
+    :root{
+      --bg:#f4f1e8;
+      --bg-2:#ece8de;
+      --panel:#fbfaf6;
+      --panel-2:#f1eee6;
+      --panel-3:#e9e4d9;
+      --line:#d8d2c6;
+      --text:#171717;
+      --muted:#77736b;
+      --soft:#494640;
+      --accent:#171717;
+      --accent-2:#55514b;
+      --green:#315c43;
+      --yellow:#8a6a26;
+      --red:#8b3b3b;
+      --blue:#42556d;
+      --shadow:0 8px 28px rgba(26,24,20,.06);
+      --radius:14px;
+      --sidebar:238px;
+    }
+
+    html,body{
+      color-scheme:light;
+      background:
+        linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.16)),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0,0,0,.012) 0,
+          rgba(0,0,0,.012) 1px,
+          transparent 1px,
+          transparent 4px
+        ),
+        var(--bg);
+      color:var(--text);
+      font-family:Inter,Arial,Helvetica,sans-serif;
+    }
+
+    h1,h2,.hero h2,.novel-card h3,.modal-head h3{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:600;
+      letter-spacing:-.025em;
+    }
+
+    .sidebar{
+      background:rgba(246,243,235,.96);
+      border-right:1px solid var(--line);
+      backdrop-filter:blur(12px);
+    }
+
+    .brand{
+      border-bottom:1px solid var(--line);
+      margin-bottom:12px;
+      padding-bottom:16px;
+    }
+
+    .logo{
+      color:#fff;
+      background:#171717;
+      box-shadow:none;
+      border-radius:9px;
+      font-family:Georgia,"Times New Roman",serif;
+      letter-spacing:-.04em;
+    }
+
+    .brand strong{
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:15px;
+      font-weight:600;
+      color:#171717;
+    }
+
+    .brand span{color:#88837a}
+
+    .nav button{
+      color:#716d65;
+      border:1px solid transparent;
+      font-weight:600;
+    }
+
+    .nav button:hover{
+      background:#ece8df;
+      color:#171717;
+      border-color:#e2ddd2;
+    }
+
+    .nav button.active{
+      background:#171717;
+      color:#fff;
+      border:1px solid #171717;
+      box-shadow:none;
+    }
+
+    .nav .ico{opacity:.9}
+
+    .session-chip{
+      background:#eeeae1;
+      border:1px solid var(--line);
+      color:#77736b;
+    }
+
+    .session-chip b{color:#2a2926}
+
+    .main{background:transparent}
+
+    .topbar{
+      background:rgba(244,241,232,.91);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(12px);
+    }
+
+    .novel-select{
+      background:#fbfaf6;
+      border:1px solid var(--line);
+      color:#171717;
+      box-shadow:none;
+    }
+
+    .novel-select select{color:#171717}
+    .novel-select option{background:#fbfaf6;color:#171717}
+
+    .pill{
+      background:#fbfaf6;
+      border:1px solid var(--line);
+      color:#5b5852;
+    }
+
+    .status-dot{
+      background:#315c43;
+      box-shadow:none;
+    }
+
+    .icon-btn,.btn{
+      background:#fbfaf6;
+      color:#171717;
+      border:1px solid #ccc6ba;
+      box-shadow:none;
+      transition:.16s ease;
+    }
+
+    .icon-btn:hover,.btn:hover{
+      transform:none;
+      background:#f0ece4;
+      border-color:#9f998e;
+    }
+
+    .btn.primary,
+    .btn.cyan,
+    .btn.green{
+      background:#171717;
+      color:#fff;
+      border-color:#171717;
+    }
+
+    .btn.primary:hover,
+    .btn.cyan:hover,
+    .btn.green:hover{
+      background:#34322f;
+      border-color:#34322f;
+    }
+
+    .btn.danger{
+      background:#fff8f7;
+      color:#7a3434;
+      border-color:#d8b7b3;
+    }
+
+    .btn.ghost{background:transparent}
+
+    .content{max-width:1500px}
+
+    .page-head{
+      border-bottom:1px solid var(--line);
+      padding-bottom:18px;
+      margin-bottom:22px;
+    }
+
+    .page-head h1{
+      color:#151515;
+      font-size:29px;
+      font-weight:600;
+    }
+
+    .page-head p{
+      color:#77736b;
+      max-width:760px;
+    }
+
+    .card{
+      background:rgba(251,250,246,.94);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .card-head{
+      border-bottom:1px solid var(--line);
+      background:rgba(245,242,235,.55);
+    }
+
+    .card-head h3{
+      font-family:Georgia,"Times New Roman",serif;
+      color:#1b1a18;
+      font-weight:600;
+    }
+
+    .kpi{
+      background:rgba(251,250,246,.96);
+    }
+
+    .kpi:after{display:none}
+
+    .kpi .label{
+      color:#868078;
+      letter-spacing:.05em;
+      font-size:10px;
+    }
+
+    .kpi .value{
+      font-family:Georgia,"Times New Roman",serif;
+      color:#171717;
+      font-weight:600;
+      font-size:31px;
+    }
+
+    .kpi .sub{color:#8b867e}
+
+    .eyebrow{
+      color:#777169;
+      font-size:10px;
+      letter-spacing:1.7px;
+      font-weight:700;
+    }
+
+    .hero h2{color:#171717}
+
+    .meta-row{color:#77736b}
+
+    .tag{
+      background:#f1ede4;
+      border:1px solid #dcd5c9;
+      color:#5e5a53;
+    }
+
+    .progress{
+      background:#e7e1d7;
+      border:1px solid #ddd6ca;
+    }
+
+    .progress>i{
+      background:#191919;
+    }
+
+    .action-tile{
+      background:#f8f6f0;
+      border:1px solid var(--line);
+      color:#171717;
+    }
+
+    .action-tile:hover{
+      background:#eeebe3;
+      border-color:#a9a398;
+    }
+
+    .action-tile span{color:#837e76}
+
+    .status{
+      border:1px solid transparent;
+      background:#eeeae1!important;
+      color:#59564f!important;
+    }
+
+    .status.RUNNING,.status.QUEUED{
+      background:#edf0f3!important;
+      color:#455464!important;
+      border-color:#d9dfe5;
+    }
+
+    .status.DONE,.status.APPROVED{
+      background:#edf3ee!important;
+      color:#315c43!important;
+      border-color:#d4e2d6;
+    }
+
+    .status.ERROR,.status.FAILED,.status.REJECTED{
+      background:#f6eceb!important;
+      color:#803f3f!important;
+      border-color:#ead4d1;
+    }
+
+    .status.WAITING_APPROVAL{
+      background:#f5f0e4!important;
+      color:#806727!important;
+      border-color:#e5dcc3;
+    }
+
+    .muted{color:#7f7a72}
+    .empty{color:#8a857d}
+
+    .list-row{
+      border-bottom:1px solid #e5dfd4;
+    }
+
+    .list-row:hover{
+      background:#f5f2eb;
+    }
+
+    .list-row p{color:#827d75}
+
+    .badge-num{
+      background:#ede8df;
+      color:#2b2926;
+      border:1px solid #ddd6ca;
+      border-radius:8px;
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:600;
+    }
+
+    .section-title{color:#7d786f}
+
+    .field label{
+      color:#716c64;
+      letter-spacing:.035em;
+    }
+
+    .field input,.field textarea,.field select{
+      background:#fffefa;
+      color:#171717;
+      border:1px solid #d5cec2;
+      border-radius:10px;
+      box-shadow:none;
+    }
+
+    .field input::placeholder,.field textarea::placeholder{color:#9a958c}
+
+    .field input:focus,.field textarea:focus,.field select:focus{
+      border-color:#767169;
+      box-shadow:0 0 0 3px rgba(30,29,27,.05);
+    }
+
+    .reader-side{
+      background:#f8f5ee;
+    }
+
+    .chapter-btn{
+      color:#767169;
+      border-bottom:1px solid transparent;
+      border-radius:7px;
+    }
+
+    .chapter-btn:hover{
+      background:#eee9e0;
+      color:#171717;
+    }
+
+    .chapter-btn.active{
+      background:#171717;
+      color:#fff;
+    }
+
+    .reader-main{
+      background:#fffefa;
+    }
+
+    .chapter-text{
+      font-family:Georgia,"Times New Roman",serif;
+      color:#25231f;
+      font-size:18px;
+      line-height:1.9;
+      max-width:760px;
+      padding:42px 34px 64px;
+    }
+
+    .metric-line{
+      border-bottom:1px solid #e4ded3;
+    }
+
+    .metric-line span{color:#807b73}
+
+    .health-item{
+      background:#f7f4ed;
+      border:1px solid #ded8cd;
+      color:#2d2a27;
+    }
+
+    .health-item.good{
+      border-color:#cbd8cd;
+      background:#f2f6f2;
+    }
+
+    .health-item.warn{
+      border-color:#e2d4ae;
+      background:#faf6eb;
+    }
+
+    .health-item.bad{
+      border-color:#e1c4c0;
+      background:#fbf2f1;
+    }
+
+    .codebox{
+      background:#1c1b19;
+      color:#eeeae1;
+      border:1px solid #2c2a27;
+      border-radius:10px;
+    }
+
+    .novel-card{
+      background:#fbfaf6;
+      transition:.16s ease;
+    }
+
+    .novel-card:hover{
+      transform:translateY(-2px);
+      border-color:#b8b1a5;
+      box-shadow:0 12px 35px rgba(26,24,20,.08);
+    }
+
+    .novel-card h3{
+      color:#171717;
+      font-size:19px;
+    }
+
+    .novel-card p{color:#78736b}
+
+    .media-item{
+      background:#f6f3ec;
+      border:1px solid #dcd6ca;
+    }
+
+    .media-item:hover{
+      background:#eeebe3;
+    }
+
+    .roadmap-row{
+      border-bottom:1px solid #e3ddd2;
+    }
+
+    .roadmap-row .ch{
+      color:#37332f;
+      font-family:Georgia,"Times New Roman",serif;
+    }
+
+    .roadmap-row p{color:#7b766e}
+
+    .toast{
+      background:#fbfaf6;
+      color:#26231f;
+      border:1px solid #cfc8bc;
+      box-shadow:0 12px 36px rgba(26,24,20,.10);
+    }
+
+    .toast.err{
+      color:#743b3b;
+      border-color:#ddb9b5;
+      background:#fff8f7;
+    }
+
+    .toast.ok{
+      color:#31553e;
+      border-color:#bed2c2;
+      background:#f7fbf7;
+    }
+
+    .overlay{
+      background:rgba(24,23,21,.54);
+      backdrop-filter:blur(5px);
+    }
+
+    .modal{
+      background:#fbfaf6;
+      border:1px solid #cfc8bc;
+      border-radius:15px;
+      box-shadow:0 30px 90px rgba(28,26,23,.20);
+      color:#171717;
+    }
+
+    .modal-head{
+      border-bottom:1px solid var(--line);
+      background:#f6f3ec;
+    }
+
+    .modal-head h3{
+      font-size:20px;
+      color:#171717;
+    }
+
+    .modal-foot{
+      border-top:1px solid var(--line);
+      background:#f7f4ed;
+    }
+
+    .spinner{
+      border-color:rgba(20,20,20,.15);
+      border-top-color:#171717;
+    }
+
+    .skeleton{
+      background:linear-gradient(90deg,#eee9df 25%,#f8f5ee 50%,#eee9df 75%);
+      background-size:220% 100%;
+    }
+
+    .danger-zone{
+      border:1px dashed #d5b3af;
+      background:#fff8f7;
+    }
+
+    .bottom-nav{
+      background:rgba(246,243,235,.97);
+      border-top:1px solid var(--line);
+      backdrop-filter:blur(12px);
+    }
+
+    .bottom-nav button{
+      color:#79746c;
+    }
+
+    .bottom-nav button.active{
+      color:#171717;
+      background:#ebe7de;
+    }
+
+    /* Editorial details */
+    .hero{
+      position:relative;
+      background:
+        linear-gradient(90deg, transparent 0, transparent 34px, rgba(0,0,0,.035) 35px, transparent 36px),
+        #fbfaf6;
+    }
+
+    .hero:before{
+      content:"";
+      position:absolute;
+      top:0;bottom:0;left:20px;width:1px;
+      background:#e8e1d6;
+      pointer-events:none;
+    }
+
+    .hero>*{position:relative}
+
+    .page-head:before{
+      content:"SMART NOVEL FORGE";
+      display:block;
+      font-size:9px;
+      letter-spacing:2.2px;
+      color:#9a958c;
+      margin-bottom:9px;
+      font-weight:700;
+    }
+
+    .job-card .eyebrow,
+    .card.pad>.eyebrow{
+      border-left:2px solid #25231f;
+      padding-left:8px;
+    }
+
+    ::selection{
+      background:#25231f;
+      color:#fff;
+    }
+
+    @media(max-width:760px){
+      .topbar{
+        background:rgba(244,241,232,.96);
+      }
+
+      .content{
+        padding-top:18px;
+      }
+
+      .page-head{
+        padding-bottom:14px;
+      }
+
+      .page-head h1{
+        font-size:26px;
+      }
+
+      .chapter-text{
+        padding:28px 19px 48px;
+        font-size:17px;
+        line-height:1.85;
+      }
+
+      .modal{
+        border-radius:14px;
+      }
+    }
+
+  
+    /* Web account login/register */
+    .auth-screen{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(420px,.85fr);
+      background:var(--bg);
+    }
+    .auth-intro{
+      padding:56px;
+      display:flex;
+      align-items:flex-end;
+      border-right:1px solid var(--line);
+      background:
+        linear-gradient(90deg,transparent 0,transparent 54px,rgba(0,0,0,.04) 55px,transparent 56px),
+        #efebe2;
+    }
+    .auth-intro-inner{max-width:690px}
+    .auth-kicker{font-size:10px;letter-spacing:2.2px;font-weight:800;color:#817c73;text-transform:uppercase}
+    .auth-intro h1{
+      margin:13px 0 18px;
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:clamp(42px,6vw,78px);
+      line-height:.96;
+      font-weight:500;
+      letter-spacing:-.055em;
+    }
+    .auth-intro p{
+      max-width:580px;
+      font:18px/1.65 Georgia,"Times New Roman",serif;
+      color:#59554e;
+    }
+    .auth-note{
+      margin-top:34px;padding-top:18px;border-top:1px solid #d5cec2;
+      color:#807a72;font-size:11px;line-height:1.6;max-width:560px
+    }
+    .auth-panel{
+      padding:42px;
+      display:grid;
+      place-items:center;
+      background:#f8f5ee;
+    }
+    .auth-card{
+      width:min(440px,100%);
+      background:#fffefa;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:28px;
+      box-shadow:0 18px 50px rgba(28,26,23,.08);
+    }
+    .auth-card h2{margin:4px 0 7px;font-size:27px}
+    .auth-card>p{margin:0 0 20px;color:#7d786f;font-size:12px;line-height:1.55}
+    .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#eee9df;padding:4px;border-radius:11px;margin-bottom:20px}
+    .auth-tabs button{border:0;background:transparent;padding:9px;border-radius:8px;color:#716c64;font-weight:700}
+    .auth-tabs button.active{background:#171717;color:#fff}
+    .auth-form{display:none}
+    .auth-form.active{display:block}
+    .auth-form .field{margin-top:11px}
+    .auth-submit{width:100%;margin-top:17px;padding:12px}
+    .privacy-copy{margin-top:18px;padding-top:14px;border-top:1px solid #e1dbd0;color:#8a857c;font-size:10px;line-height:1.6}
+    @media(max-width:860px){
+      .auth-screen{grid-template-columns:1fr;display:block}
+      .auth-intro{padding:34px 24px;min-height:260px;border-right:0;border-bottom:1px solid var(--line)}
+      .auth-intro h1{font-size:46px}
+      .auth-intro p{font-size:16px}
+      .auth-panel{padding:24px 16px 40px}
+    }
+
+  
+    .share-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+    .share-label{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
+    .share-btn{border:1px solid var(--line);background:#fbfaf6;color:#171717;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:750;cursor:pointer}
+    .share-btn:hover{background:#ece8df;border-color:#aaa398}
+
+  </style>
+</head>
+<body>
+<div id="toastWrap" class="toast-wrap"></div>
+
+<div id="loadingOverlay" class="overlay">
+  <div style="display:flex;align-items:center;gap:12px;color:#dbeafe">
+    <div class="spinner"></div>
+    <div><b>Smart Novel Forge</b><div class="tiny muted" style="margin-top:3px">Opening your studio…</div></div>
+  </div>
+</div>
+
+<div id="modalOverlay" class="overlay hidden" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalTitle">Dialog</h3><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div id="modalBody" class="modal-body"></div>
+    <div id="modalFoot" class="modal-foot"></div>
+  </div>
+</div>
+
+
+<div id="authScreen" class="auth-screen hidden">
+  <section class="auth-intro">
+    <div class="auth-intro-inner">
+      <div class="auth-kicker">Smart Novel Forge</div>
+      <h1>Your stories.<br>Your private shelf.</h1>
+      <p>A focused writing studio for long-form fiction, continuity, revision, and publication.</p>
+      <div class="auth-note">Web accounts are isolated from Telegram Admin workspaces. Each account only receives its own novels, jobs, media, exports, and writing data through the Web App.</div>
+    </div>
+  </section>
+  <section class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-kicker">Writer Account</div>
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authSubtitle">Sign in with your username or email.</p>
+      <div class="auth-tabs">
+        <button id="tabLogin" class="active" onclick="switchAuth('login')">Sign in</button>
+        <button id="tabRegister" onclick="switchAuth('register')">Register</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active" onsubmit="submitLogin(event)">
+        <div class="field"><label>USERNAME OR EMAIL</label><input id="loginIdentifier" autocomplete="username" required></div>
+        <div class="field"><label>PASSWORD</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+        <button class="btn primary auth-submit" type="submit">Sign In</button>
+      </form>
+
+      <form id="registerForm" class="auth-form" onsubmit="submitRegister(event)">
+        <div class="field"><label>USERNAME</label><input id="registerUsername" autocomplete="username" placeholder="yunara" required></div>
+        <div class="field"><label>EMAIL</label><input id="registerEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+        <div class="field"><label>PASSWORD</label><input id="registerPassword" type="password" autocomplete="new-password" required></div>
+        <div class="field"><label>CONFIRM PASSWORD</label><input id="registerConfirm" type="password" autocomplete="new-password" required></div>
+        <button class="btn primary auth-submit" type="submit">Create Account</button>
+      </form>
+
+      <div class="privacy-copy">Passwords are never displayed in the app. Your browser stores only an opaque login session after authentication.</div>
+    </div>
+  </section>
+</div>
+
+<div id="appShell" class="app hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">SF</div>
+      <div><strong>Smart Novel Forge</strong><span id="versionLabel">Editorial Studio</span></div>
+    </div>
+    <nav id="sidebarNav" class="nav">
+      <button data-page="dashboard" class="active"><span class="ico">⌂</span>Dashboard</button>
+      <button data-page="novels"><span class="ico">▦</span>Novels</button>
+      <button data-page="writing"><span class="ico">✎</span>Writing</button>
+      <button data-page="chapters"><span class="ico">☷</span>Chapters</button>
+      <button data-page="roadmap"><span class="ico">⌁</span>Roadmap</button>
+      <button data-page="brain"><span class="ico">◉</span>Novel Brain</button>
+      <button data-page="canon"><span class="ico">◈</span>Canon Health</button>
+      <button data-page="analytics"><span class="ico">⌁</span>Analytics</button>
+      <button data-page="visual"><span class="ico">✦</span>Visual</button>
+      <button data-page="publish"><span class="ico">⇧</span>Publish</button>
+      <button data-page="ai"><span class="ico">⚙</span>AI Engine</button>
+      <button data-page="jobs"><span class="ico">☑</span>Jobs</button>
+      <button data-page="settings"><span class="ico">☰</span>Settings</button>
+    </nav>
+    <div class="side-bottom">
+      <div class="session-chip"><b id="sideMode">WEB ACCOUNT</b><span id="sideUser">Starting…</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="novel-select">
+        <span>📖</span>
+        <select id="novelSelect" onchange="selectNovel(this.value)"><option value="">No novel selected</option></select>
+      </div>
+      <div class="top-actions">
+        <div class="pill"><span class="status-dot"></span><span id="aiProviderTop">AI on demand</span></div>
+        <button class="icon-btn" title="Refresh" onclick="refreshCurrent()">↻</button>
+        <button class="icon-btn" title="Create novel" onclick="openCreateNovel()">＋</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section id="page-dashboard" class="page active"></section>
+      <section id="page-novels" class="page"></section>
+      <section id="page-writing" class="page"></section>
+      <section id="page-chapters" class="page"></section>
+      <section id="page-roadmap" class="page"></section>
+      <section id="page-brain" class="page"></section>
+      <section id="page-canon" class="page"></section>
+      <section id="page-analytics" class="page"></section>
+      <section id="page-visual" class="page"></section>
+      <section id="page-publish" class="page"></section>
+      <section id="page-ai" class="page"></section>
+      <section id="page-jobs" class="page"></section>
+      <section id="page-settings" class="page"></section>
+    </div>
+  </main>
+</div>
+
+<nav id="bottomNav" class="bottom-nav hidden">
+  <button data-page="dashboard" class="active"><span>⌂</span>Home</button>
+  <button data-page="writing"><span>✎</span>Write</button>
+  <button data-page="chapters"><span>☷</span>Book</button>
+  <button data-page="brain"><span>◉</span>Brain</button>
+  <button data-page="jobs"><span>☑</span>Jobs</button>
+  <!-- v5.1 fix: Settings (incl. Sign Out) was unreachable on mobile -->
+  <button data-page="settings"><span>☰</span>More</button>
+</nav>
+
+<script>
+const LS_AUTH='SNF_V5_WEB_SESSION';
+const LS_NOVEL='SNF_V4_ACTIVE_NOVEL';
+
+const S={
+  auth:null, user:null, userId:'', version:'', settings:{}, novels:[],
+  activeNovelId:'', workspace:null, chapterIndex:null, studio:null, ai:null, analytics:null, jobs:[], libraryLoaded:false, databaseName:'',
+  page:'dashboard', polling:{}, bootstrap:null, jobScope:'all'
+};
+
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function fmtNum(n){return new Intl.NumberFormat().format(Number(n||0))}
+function pct(a,b){a=Number(a||0);b=Number(b||0);return b?Math.max(0,Math.min(100,Math.round(a/b*100))):0}
+function clampText(s,n=140){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s}
+function dt(v){if(!v)return '-';try{return new Date(v).toLocaleString()}catch(_){return String(v)}}
+function prettyKey(s){return String(s||'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function statusClass(s){return esc(String(s||'').toUpperCase())}
+function isAdmin(){return false}
+function activeNovel(){return S.novels.find(n=>n.id===S.activeNovelId)||null}
+function btn(label,fn,cls=''){return `<button class="btn ${cls}" onclick="${fn}">${label}</button>`}
+function tag(text){return `<span class="tag">${esc(text)}</span>`}
+
+function server(fn,...args){
+  return new Promise((resolve,reject)=>{
+    try{
+      const runner=google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(e=>reject(new Error((e&&e.message)||String(e))));
+      runner[fn](...args);
+    }catch(e){reject(e)}
+  });
+}
+
+function toast(msg,type='ok',ms=3600){
+  const w=document.getElementById('toastWrap'),el=document.createElement('div');
+  el.className='toast '+(type==='err'?'err':'ok');el.textContent=msg;w.appendChild(el);
+  setTimeout(()=>el.remove(),ms);
+}
+function showLoading(on=true){document.getElementById('loadingOverlay').classList.toggle('hidden',!on)}
+function modal(title,body,foot=''){
+  // v5.1: opening any modal retires the previous job watcher (see closeModal).
+  window.__NF_JOB_WATCH=(window.__NF_JOB_WATCH||0)+1;
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalFoot').innerHTML=foot;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+function closeModal(){
+  // v5.1 fix: invalidate any running job watcher — closing the modal used to
+  // leave the webPumpJob poll loop running forever, and two watchers would
+  // overwrite each other's modal content.
+  window.__NF_JOB_WATCH=(window.__NF_JOB_WATCH||0)+1;
+  document.getElementById('modalOverlay').classList.add('hidden');
+}
+
+function objectPreview(obj){
+  if(obj==null)return `<div class="empty">No data yet.</div>`;
+  return `<div class="codebox">${esc(JSON.stringify(obj,null,2))}</div>`;
+}
+
+async function boot(){
+  let auth=null;try{auth=JSON.parse(localStorage.getItem(LS_AUTH)||'null')}catch(_){}
+  // Fresh visitors see Login/Register immediately: no Sheets request from JS.
+  if(!auth||!auth.sessionId){
+    S.auth=null;S.user=null;S.userId='';S.novels=[];S.libraryLoaded=false;
+    showLoading(false);showAuthScreen();return;
+  }
+
+  showLoading(true);
+  try{
+    const r=await server('webResumeSession',auth);
+    applySession(r,auth);
+    showLoading(false);
+    renderLibraryLoading();
+    // v5.1 fix: a stale/dead session used to trap the user on a "Retry Library"
+    // button that could never succeed. Auth failures now go back to login.
+    loadUserLibrary().catch(e=>{
+      if(/SESSION_|AUTH_REQUIRED|ACCOUNT_DISABLED|ACCOUNT_NOT_FOUND/.test(String(e&&e.message||''))){
+        try{localStorage.removeItem(LS_AUTH)}catch(_){}
+        S.auth=null;S.user=null;S.userId='';S.novels=[];S.libraryLoaded=false;
+        showAuthScreen();toast(normalizeAuthError(e.message),'err',5000);return;
+      }
+      toast(normalizeAuthError(e.message),'err',7000);renderLibraryError(e.message);
+    });
+  }catch(e){
+    localStorage.removeItem(LS_AUTH);S.auth=null;S.user=null;S.novels=[];S.libraryLoaded=false;
+    showLoading(false);showAuthScreen();
+  }
+}
+
+function applySession(r,fallbackAuth){
+  S.auth=r.auth||fallbackAuth||S.auth;S.user=r.user||{};S.userId=S.user.id||'';S.version=r.version||'';S.settings=r.settings||{};
+  localStorage.setItem(LS_AUTH,JSON.stringify(S.auth));hideAuthScreen();
+  document.getElementById('versionLabel').textContent=S.version||'Light Studio';
+  document.getElementById('sideMode').textContent='PRIVATE WEB ACCOUNT';
+  document.getElementById('sideUser').textContent='@'+(S.user.username||S.userId);
+}
+
+function renderLibraryLoading(){
+  S.libraryLoaded=false;S.novels=[];S.activeNovelId='';fillNovelSelect();
+  const el=document.getElementById('page-dashboard');
+  el.innerHTML=pageHeader('Your Library','Login complete. Opening only your private novel index…')+
+    `<div class="grid kpis"><div class="card kpi"><div class="label">ACCOUNT</div><div class="value" style="font-size:20px">@${esc(S.user?.username||'')}</div><div class="sub">Registry ready</div></div><div class="card kpi"><div class="label">DATABASE</div><div class="value" style="font-size:20px">Opening…</div><div class="sub">username_NovelForge_DB</div></div></div>`;
+}
+
+function renderLibraryError(msg){
+  document.getElementById('page-dashboard').innerHTML=pageHeader('Library unavailable','Account login succeeded, but the private database could not be opened.')+
+    `<div class="card pad"><p class="muted">${esc(msg)}</p><button class="btn primary" onclick="loadUserLibrary()">Retry Library</button></div>`;
+}
+
+async function loadUserLibrary(){
+  const r=await server('webLoadLibrary',S.auth);S.novels=r.novels||[];S.databaseName=r.databaseName||'';S.libraryLoaded=true;
+  fillNovelSelect();
+  const saved=localStorage.getItem(LS_NOVEL);
+  S.activeNovelId=(saved&&S.novels.some(n=>n.id===saved))?saved:(S.novels[0]?.id||'');
+  document.getElementById('novelSelect').value=S.activeNovelId;
+  S.workspace=null;S.chapterIndex=null;S.studio=null;S.ai=null;S.analytics=null;S.jobs=[];
+  renderAllBasic();navigate('dashboard');
+}
+
+function fillNovelSelect(){
+  const el=document.getElementById('novelSelect');
+  el.innerHTML='<option value="">No novel selected</option>'+S.novels.map(n=>`<option value="${esc(n.id)}">${esc(n.title)} · Ch ${n.latestCanon||0}</option>`).join('');
+}
+
+async function selectNovel(id){
+  S.activeNovelId=id||'';localStorage.setItem(LS_NOVEL,S.activeNovelId);
+  S.workspace=null;S.chapterIndex=null;S.studio=null;S.analytics=null;S.jobs=[];
+  renderAllBasic();
+  if(S.page==='dashboard'){renderDashboard();return}
+  if(S.page==='novels'){renderNovels();return}
+  await navigate(S.page,true);
+}
+
+async function refreshCurrent(){
+  try{
+    const r=await server('webLoadLibrary',S.auth);S.novels=r.novels||[];S.databaseName=r.databaseName||S.databaseName||'';
+    fillNovelSelect();if(!S.novels.some(n=>n.id===S.activeNovelId))S.activeNovelId=S.novels[0]?.id||'';
+    document.getElementById('novelSelect').value=S.activeNovelId;
+    S.workspace=null;S.chapterIndex=null;S.studio=null;S.analytics=null;S.jobs=[];renderAllBasic();await navigate(S.page,true);toast('Refreshed');
+  }catch(e){toast(e.message,'err')}
+}
+
+async function loadWorkspace(force=false){
+  if(!S.activeNovelId)return null;
+  if(S.workspace&&!force)return S.workspace;
+  S.workspace=await server('webGetWorkspace',S.auth,S.activeNovelId);
+  const n=S.workspace.novel;
+  const i=S.novels.findIndex(x=>x.id===n.id);if(i>=0)S.novels[i]={...S.novels[i],...n};
+  return S.workspace;
+}
+async function loadChapterIndex(force=false){
+  if(!S.activeNovelId)return [];
+  if(S.chapterIndex&&!force)return S.chapterIndex;
+  const r=await server('webGetChapterIndex',S.auth,S.activeNovelId);S.chapterIndex=r.chapters||[];return S.chapterIndex;
+}
+
+async function loadStudio(force=false){
+  if(!S.activeNovelId)return null;
+  if(S.studio&&!force)return S.studio;
+  S.studio=await server('webGetStudioData',S.auth,S.activeNovelId);return S.studio;
+}
+async function loadAi(force=false){
+  if(S.ai&&!force)return S.ai;
+  const r=await server('webGetAiStatus',S.auth);S.ai=r.ai||{};
+  document.getElementById('aiProviderTop').textContent=(S.ai.lastProvider||S.ai.order?.[0]||'AI Ready')+' · '+(S.ai.routerMode||'');
+  return S.ai;
+}
+async function loadAnalytics(force=false){
+  if(!S.activeNovelId)return null;
+  if(S.analytics&&!force)return S.analytics;
+  S.analytics=await server('webGetAnalytics',S.auth,S.activeNovelId);return S.analytics;
+}
+async function loadJobs(force=false){
+  if(S.jobs.length&&!force)return S.jobs;
+  const novelFilter=S.jobScope==='novel'?(S.activeNovelId||''):'';
+  S.jobs=await server('webListJobs',S.auth,novelFilter,100);
+  return S.jobs;
+}
+
+function renderAllBasic(){
+  renderDashboard();renderNovels();renderWriting();renderChaptersShell();renderSettings();
+}
+
+function pageHeader(title,sub,actions=''){
+  return `<div class="page-head"><div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div><div class="head-actions">${actions}</div></div>`;
+}
+function needNovel(){
+  return pageHeader('Select a novel','Choose a novel from the top bar or create a new one.')+
+  `<div class="card pad empty">No active novel.<br><br>${btn('＋ Create Novel','openCreateNovel()','primary')}</div>`;
+}
+function errorPanel(title,msg){
+  return `<div class="card pad"><div class="eyebrow">ERROR</div><h2>${esc(title)}</h2><p class="muted">${esc(msg)}</p></div>`;
+}
+
+function renderDashboard(){
+  const el=document.getElementById('page-dashboard');
+  if(!S.libraryLoaded){renderLibraryLoading();return}
+  if(!S.novels.length){
+    el.innerHTML=pageHeader('Your Library','Your private database is ready.',btn('＋ Create Novel','openCreateNovel()','primary'))+
+      `<div class="card empty">No novel yet.<br><br>${btn('Create your first novel','openCreateNovel()','primary')}</div>`;return;
+  }
+  const n=activeNovel()||S.novels[0],progress=pct(n.latestCanon,n.targetChapters),totalCanon=S.novels.reduce((a,x)=>a+Number(x.latestCanon||0),0);
+  el.innerHTML=pageHeader('Dashboard','Light mode: this page uses only your private _INDEX.',
+    btn('Share','openShareModal(S.activeNovelId)','ghost')+btn('＋ New Novel','openCreateNovel()','primary')+btn('↻ Refresh','refreshCurrent()','ghost'))+
+  `<div class="grid kpis">
+    <div class="card kpi"><div class="label">NOVELS</div><div class="value">${S.novels.length}</div><div class="sub">Private projects</div></div>
+    <div class="card kpi"><div class="label">TOTAL CANON</div><div class="value">${fmtNum(totalCanon)}</div><div class="sub">Across your library</div></div>
+    <div class="card kpi"><div class="label">SELECTED CANON</div><div class="value">${fmtNum(n.latestCanon)}</div><div class="sub">Target ${fmtNum(n.targetChapters)}</div></div>
+    <div class="card kpi"><div class="label">DATABASE</div><div class="value" style="font-size:17px">${esc(S.databaseName||'Private DB')}</div><div class="sub">Per-user database</div></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="card hero">
+      <div class="eyebrow">SELECTED NOVEL</div><h2>${esc(n.title)}</h2>
+      <div class="meta-row">${n.language?tag(n.language):''}${n.genre?tag(n.genre):''}${n.status?tag(n.status):''}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:18px 0 7px"><span>Canon progress</span><b>${n.latestCanon}/${n.targetChapters||'∞'}</b></div>
+      <div class="progress large"><i style="width:${progress}%"></i></div>
+      <div class="quick-actions">
+        <button class="action-tile" onclick="navigate('writing')">✎<b>Write</b><span>Writing tools</span></button>
+        <button class="action-tile" onclick="navigate('chapters')">☷<b>Chapters</b><span>Load chapter index</span></button>
+        <button class="action-tile" onclick="navigate('jobs')">☑<b>Jobs</b><span>Private job history</span></button>
+        <button class="action-tile" onclick="navigate('roadmap')">⌁<b>Roadmap</b><span>Load story plan</span></button>
+      </div>
+      <div class="share-strip"><span class="share-label">Share</span><button class="share-btn" onclick="shareNovel('facebook',S.activeNovelId)">Facebook</button><button class="share-btn" onclick="shareNovel('x',S.activeNovelId)">𝕏</button><button class="share-btn" onclick="shareNovel('threads',S.activeNovelId)">Threads</button></div>
+    </div>
+    <div class="card"><div class="card-head"><h3>Library</h3><span>${S.novels.length}</span></div><div class="list">
+      ${S.novels.slice(0,8).map(x=>`<div class="list-row"><div class="badge-num">${Number(x.latestCanon||0)}</div><div class="grow"><b>${esc(x.title)}</b><p>${esc(x.status||'ACTIVE')} · ${esc(x.language||'')}</p></div><button class="btn small ghost" onclick="selectNovel('${esc(x.id)}')">${x.id===S.activeNovelId?'Selected':'Select'}</button></div>`).join('')}
+    </div></div>
+  </div>`;
+}
+
+function renderActiveJob(j){
+  if(!j)return `<div class="card-head"><h3>Current Activity</h3><span>Idle</span></div><div class="empty">No active job.<br><br><button class="btn primary small" onclick="navigate('writing')">Start Writing</button></div>`;
+  return `<div class="card-head"><h3>Current Activity</h3><span class="status ${statusClass(j.status)}">${esc(j.status)}</span></div>
+  <div class="job-card">
+    <div class="eyebrow">${esc(j.type)}</div>
+    <h3 style="margin:8px 0">${esc(j.label||j.stage)}</h3>
+    <div class="muted tiny">${esc(j.stage)} · ${j.startChapter?`Ch ${j.startChapter}–${j.endChapter}`:''}</div>
+    <div style="display:flex;justify-content:space-between;margin:18px 0 7px;font-size:11px"><span class="muted">Progress</span><b>${Number(j.progress||0)}%</b></div>
+    <div class="progress large"><i style="width:${Number(j.progress||0)}%"></i></div>
+    ${j.error?`<div class="health-item bad tiny">${esc(j.error)}</div>`:''}
+    <div class="toolbar" style="margin-top:15px"><button class="btn small" onclick="watchJob('${esc(j.id)}')">Open Job</button><button class="btn ghost small" onclick="navigate('jobs')">All Jobs</button></div>
+  </div>`;
+}
+function renderRecentChapters(list){
+  const arr=[...list].sort((a,b)=>Number(b.CHAPTER||b.chapter||0)-Number(a.CHAPTER||a.chapter||0)).slice(0,7);
+  if(!arr.length)return `<div class="empty">No chapters yet.</div>`;
+  return `<div class="list">${arr.map(x=>{
+    const n=Number(x.CHAPTER||x.chapter||0),title=x.TITLE||x.title||`Chapter ${n}`,status=x.STATUS||x.status||'';
+    return `<div class="list-row"><div class="badge-num">${n}</div><div class="grow"><b>${esc(title)}</b><p>${esc(status)}</p></div><button class="btn small ghost" onclick="openChapter(${n})">Read</button></div>`;
+  }).join('')}</div>`;
+}
+function renderReviews(list){
+  if(!list.length)return `<div class="empty">No reviews yet.</div>`;
+  return `<div class="list">${list.slice(0,7).map(x=>`<div class="list-row"><div class="grow"><b>${esc(x.title||x.type||x.key||'Review')}</b><p>${esc(clampText(x.summary||x.status||JSON.stringify(x),100))}</p></div></div>`).join('')}</div>`;
+}
+
+function renderNovels(){
+  const el=document.getElementById('page-novels');
+  el.innerHTML=pageHeader('Novel Library','Only metadata from your private _INDEX is loaded here.',btn('＋ Create Novel','openCreateNovel()','primary'))+
+  (S.novels.length?`<div class="novel-grid">${S.novels.map(n=>`
+    <div class="card novel-card"><div class="meta-row"><span class="status ${statusClass(n.status)}">${esc(n.status||'ACTIVE')}</span>${n.language?tag(n.language):''}</div><h3>${esc(n.title)}</h3>
+      <p>${esc(n.genre||'Private novel project')}</p><div style="margin-top:14px"><div class="progress"><i style="width:${pct(n.latestCanon,n.targetChapters)}%"></i></div></div>
+      <div class="footer"><span class="tiny muted">Canon ${n.latestCanon||0}/${n.targetChapters||'∞'}</span><div class="toolbar"><button class="btn small ghost" onclick="openShareModal('${esc(n.id)}')">Share</button><button class="btn small ${n.id===S.activeNovelId?'green':'primary'}" onclick="selectNovel('${esc(n.id)}')">${n.id===S.activeNovelId?'Active':'Open'}</button></div></div>
+    </div>`).join('')}</div>`:`<div class="card empty">No novel yet.<br><br>${btn('Create your first novel','openCreateNovel()','primary')}</div>`);
+}
+
+function renderWriting(){
+  const el=document.getElementById('page-writing');
+  if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  const n=activeNovel()||{},next=Number(n.latestCanon||0)+1,target=Number(n.targetChapters||0);
+  el.innerHTML=pageHeader('Writing Studio','Draft, review, revise, and continue your manuscript.')+
+  `<div class="grid equal">
+    <div class="card pad">
+      <div class="eyebrow">MANUAL WRITE</div><h2 style="margin:7px 0 6px">Write next chapters</h2>
+      <p class="muted tiny">Must begin from Chapter ${next}. Maximum 20 chapters per manual batch.</p>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field"><label>START</label><input id="writeStart" type="number" value="${next}" readonly></div>
+        <div class="field"><label>END</label><input id="writeEnd" type="number" value="${Math.min(target||next+4,next+4)}"></div>
+      </div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn primary" onclick="startWrite()">✎ Start Writing</button><button class="btn ghost" onclick="nextBatch()">Next Default Batch</button></div>
+    </div>
+    <div class="card pad">
+      <div class="eyebrow">FULL AUTO PRODUCTION</div><h2 style="margin:7px 0 6px">Auto Writing</h2>
+      <p class="muted tiny">Runs writing → review → rewrite/finalize automatically for this account.</p>
+      <div class="form-grid" style="margin-top:16px">
+        <div class="field"><label>START</label><input id="autoStart" type="number" value="${next}" readonly></div>
+        <div class="field"><label>END</label><input id="autoEnd" type="number" value="${target||next+29}"></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn cyan" onclick="startAuto()">⚡ Start Auto Production</button></div>
+    </div>
+  </div>
+  <div class="grid equal" style="margin-top:16px">
+    <div class="card pad">
+      <div class="eyebrow">REVIEW</div><h3>Review existing chapter</h3>
+      <div class="form-grid"><div class="field"><label>CHAPTER</label><input id="reviewChapter" type="number" min="1" max="${n.currentChapter||1}" value="${n.latestCanon||1}"></div></div>
+      <div class="toolbar" style="margin-top:12px"><button class="btn" onclick="reviewChapter()">Run Review</button><button class="btn ghost" onclick="chapterDiff()">Compare with Canon</button></div>
+    </div>
+    <div class="card pad">
+      <div class="eyebrow">REWRITE</div><h3>Rewrite with instruction</h3>
+      <div class="form-grid">
+        <div class="field"><label>CHAPTER</label><input id="rewriteChapter" type="number" value="${n.latestCanon||1}"></div>
+        <div class="field full"><label>INSTRUCTION</label><textarea id="rewriteReason" placeholder="Example: Keep all canon facts, but improve pacing and make dialogue less repetitive."></textarea></div>
+      </div>
+      <button class="btn" onclick="rewriteChapter()">Rewrite Chapter</button>
+    </div>
+  </div>`;
+}
+
+function renderChaptersShell(){
+  const el=document.getElementById('page-chapters');
+  if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  if(!S.chapterIndex){el.innerHTML=pageHeader('Chapters','Chapter index loads only when this page is opened.')+`<div class="skeleton"></div>`;return}
+  const list=S.chapterIndex||[];
+  el.innerHTML=pageHeader('Chapters','Read your manuscript chapter by chapter.')+
+  `<div class="split">
+    <div class="card reader-side"><div class="card-head"><h3>Chapter List</h3><span>${list.length}</span></div><div class="chapter-list">
+      ${list.length?list.map(x=>{const n=Number(x.number||x.chapter||0);return `<button class="chapter-btn" id="chapterBtn-${n}" onclick="loadChapter(${n})">Chapter ${n} · ${esc(x.title||'Untitled')}</button>`}).join(''):`<div class="empty">No chapters</div>`}
+    </div></div>
+    <div class="card reader-main"><div id="chapterReader"><div class="empty">Select a chapter to read.</div></div></div>
+  </div>`;
+}
+
+async function renderRoadmap(){
+  const el=document.getElementById('page-roadmap');if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  el.innerHTML=pageHeader('Roadmap','Story structure and adaptive planning.')+`<div class="skeleton"></div>`;
+  try{
+    const n=activeNovel()||{};
+    const rr=await Promise.all([server('webGetRoadmapPage',S.auth,S.activeNovelId,1,60),server('webGetRoadmapCenterFast',S.auth,S.activeNovelId).catch(()=>({roadmapCenter:null}))]);
+    const plans=rr[0].plans||[],center=rr[1].roadmapCenter||null;
+    el.innerHTML=pageHeader('Roadmap','Story structure and adaptive planning.',btn('ReRoadMap','openReRoadmap()','primary')+btn('↻ Reload','renderRoadmap()','ghost'))+
+    `<div class="grid two"><div class="card"><div class="card-head"><h3>Chapter Roadmap</h3><span>${plans.length}</span></div>${plans.length?plans.map((p,i)=>roadmapRow(p,i+1)).join(''):`<div class="empty">No roadmap plans.</div>`}</div>
+    <div><div class="card pad"><div class="eyebrow">ROADMAP CENTER</div>${renderRoadmapCenter(center)}</div><div class="card pad" style="margin-top:16px"><div class="metric-line"><span>Latest Canon</span><b>${n.latestCanon||0}</b></div><div class="metric-line"><span>Target</span><b>${n.targetChapters||'-'}</b></div></div></div></div>`;
+  }catch(e){el.innerHTML=errorPanel('Roadmap unavailable',e.message)}
+}
+
+function roadmapRow(p,fallback){
+  const n=Number(p.chapter||p.CHAPTER||p.number||fallback),title=p.title||p.TITLE||p.name||`Chapter ${n}`;
+  const desc=p.summary||p.description||p.goal||p.beats||p.DATA_JSON||'';
+  return `<div class="roadmap-row"><div class="ch">Ch ${n}</div><div><h4>${esc(title)}</h4><p>${esc(clampText(typeof desc==='string'?desc:JSON.stringify(desc),280))}</p></div><div>${p.arc?tag(p.arc):''}</div></div>`;
+}
+function renderRoadmapCenter(c){
+  if(!c)return `<div class="muted tiny">No roadmap center data yet.</div>`;
+  const versions=c.versions||c.candidates||c.items||[];
+  let body='';
+  if(Array.isArray(versions)&&versions.length)body=versions.slice(0,10).map(v=>`<div class="health-item"><b>${esc(v.versionId||v.id||v.key||'Version')}</b><div class="tiny muted">${esc(v.status||v.strategy||v.mode||'')}</div>${(v.versionId||v.id)?`<div style="margin-top:8px"><button class="btn small" onclick="viewRoadmapVersion('${esc(v.versionId||v.id)}')">View</button></div>`:''}</div>`).join('');
+  else body=objectPreview(c);
+  return body;
+}
+
+async function renderBrain(){
+  const el=document.getElementById('page-brain'); if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  el.innerHTML=pageHeader('Novel Brain','Characters, threads, chronology, lore, and narrative memory.')+`<div class="skeleton"></div>`;
+  try{
+    const d=await loadStudio(true);
+    el.innerHTML=pageHeader('Novel Brain','Characters, threads, chronology, lore, and narrative memory.',
+      btn('Build Lore','startLore()','ghost')+btn('Analyze Style','openStyleAnalysis()','primary'))+
+    `<div class="grid equal">
+      ${brainCard('Characters',d.characters,'Character states remembered by the system.')}
+      ${brainCard('Plot Threads',d.plotThreads,'Open, developing and resolved threads.')}
+      ${brainCard('Foreshadowing',d.foreshadowing,'Seeds, callbacks and payoff tracking.')}
+      ${brainCard('Timeline',d.timeline,'Story chronology and event ordering.')}
+      ${brainCard('World Encyclopedia',d.worldEncyclopedia,'Lore, places, factions and world rules.')}
+      ${brainCard('Style Lock',d.styleLock,'Voice, POV, tense, rhythm and prose constraints.')}
+    </div>`;
+  }catch(e){el.innerHTML=errorPanel('Novel Brain unavailable',e.message)}
+}
+function brainCard(title,obj,sub){
+  const count=Array.isArray(obj)?obj.length:(obj&&typeof obj==='object'?Object.keys(obj).length:0);
+  return `<div class="card"><div class="card-head"><h3>${esc(title)}</h3><span>${count} items</span></div><div class="card pad" style="border:0;box-shadow:none;background:transparent"><p class="tiny muted">${esc(sub)}</p>${renderObjectSummary(obj)}</div></div>`;
+}
+function renderObjectSummary(obj){
+  if(obj==null||obj===''||(Array.isArray(obj)&&!obj.length)||(typeof obj==='object'&&!Array.isArray(obj)&&!Object.keys(obj).length))return `<div class="empty">No data yet.</div>`;
+  const rows=Array.isArray(obj)?obj.slice(0,6).map((v,i)=>[i+1,v]):Object.entries(obj).slice(0,6);
+  // v5.1 fix: the old version inlined JSON.stringify into a single-quoted onclick
+  // attribute — any apostrophe in the data (e.g. "it's") broke the button.
+  // Store the payload in a cache and pass only a key.
+  const ck='jk_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+  (window.__NF_JSON=window.__NF_JSON||{})[ck]=obj;
+  if(Object.keys(window.__NF_JSON).length>50){
+    const drop=Object.keys(window.__NF_JSON).slice(0,Object.keys(window.__NF_JSON).length-50);
+    drop.forEach(d=>{delete window.__NF_JSON[d]});
+  }
+  return rows.map(([k,v])=>`<div class="health-item"><b>${esc(prettyKey(k))}</b><div class="tiny muted" style="margin-top:4px">${esc(clampText(typeof v==='string'?v:JSON.stringify(v),220))}</div></div>`).join('')+
+    `<div style="margin-top:10px"><button class="btn small ghost" onclick="showJsonModalKey('${ck}')">View raw data</button></div>`;
+}
+function showJsonModalKey(k){
+  const obj=(window.__NF_JSON||{})[k];
+  showJsonModal(JSON.stringify(obj!=null?obj:{}));
+}
+
+async function renderCanon(){
+  const el=document.getElementById('page-canon');if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  el.innerHTML=pageHeader('Canon Health','Continuity and contradictions.')+`<div class="skeleton"></div>`;
+  try{
+    const d=await server('webGetCanonStatusFast',S.auth,S.activeNovelId),n=activeNovel()||{};
+    el.innerHTML=pageHeader('Canon Health','Continuity and contradictions.',btn('Run Health Check','openHealthCheck()','primary'))+
+    `<div class="grid equal"><div class="card pad"><div class="eyebrow">LATEST HEALTH REPORT</div>${renderHealth(d.canonHealth)}</div><div class="card pad"><div class="eyebrow">CONTRADICTION ALARM</div>${renderHealth(d.contradictionAlarm)}</div></div>
+    <div class="card pad" style="margin-top:16px"><div class="metric-line"><span>Available Canon</span><b>1–${Number(n.latestCanon||0)}</b></div></div>`;
+  }catch(e){el.innerHTML=errorPanel('Canon Health unavailable',e.message)}
+}
+
+function renderHealth(obj){
+  if(!obj)return `<div class="empty">No report yet.</div>`;
+  const status=obj.status||obj.overall||obj.health||obj.result||'REPORT';
+  let cls=/fail|error|critical/i.test(status)?'bad':/warn|issue|conflict/i.test(status)?'warn':'good';
+  return `<div class="health-item ${cls}" style="margin-top:14px"><b>${esc(String(status).toUpperCase())}</b></div>`+renderObjectSummary(obj);
+}
+
+async function renderAnalytics(){
+  const el=document.getElementById('page-analytics');if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  el.innerHTML=pageHeader('Analytics','Pacing, chapter balance, hooks, repetition, and manuscript statistics.')+`<div class="skeleton"></div>`;
+  try{
+    const r=await loadAnalytics(true),a=r.analytics||{},q=r.quality||{};
+    el.innerHTML=pageHeader('Analytics','Pacing, chapter balance, hooks, repetition, and manuscript statistics.',
+      btn('Rebuild Analytics','startAnalyticsBackfill()','primary'))+
+    `<div class="grid kpis">
+      ${metricKpi('Chapters',a.chapterCount??a.count??a.totalChapters??'-','Analyzed')}
+      ${metricKpi('Words',a.totalWords??a.wordCount??'-','Total')}
+      ${metricKpi('Avg Words',a.avgWords??a.averageWords??'-','Per chapter')}
+      ${metricKpi('Dialogue',a.avgDialogueRatio!=null?Math.round(Number(a.avgDialogueRatio)*100)+'%':(a.dialogueRatio??'-'),'Average ratio')}
+    </div>
+    <div class="grid equal" style="margin-top:16px">
+      <div class="card pad"><div class="eyebrow">ANALYTICS DATA</div>${renderObjectSummary(a)}</div>
+      <div class="card pad"><div class="eyebrow">QUALITY REPORT</div>${renderObjectSummary(q)}</div>
+    </div>`;
+  }catch(e){el.innerHTML=errorPanel('Analytics unavailable',e.message)}
+}
+function metricKpi(label,val,sub){return `<div class="card kpi"><div class="label">${esc(label.toUpperCase())}</div><div class="value">${esc(val)}</div><div class="sub">${esc(sub)}</div></div>`}
+
+async function renderVisual(){
+  const el=document.getElementById('page-visual');if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  el.innerHTML=pageHeader('Visual Studio','Visual references, cover work, illustrations, and media.')+`<div class="skeleton"></div>`;
+  try{
+    const d=await loadStudio(true),media=d.media||[];
+    el.innerHTML=pageHeader('Visual Studio','Visual references, cover work, illustrations, and media.',
+      btn('Build Visual Bible','startVisualBible()','primary'))+
+    `<div class="grid equal">
+      <div class="card pad"><div class="eyebrow">VISUAL BIBLE</div>${renderObjectSummary(d.visualBible)}</div>
+      <div class="card pad">
+        <div class="eyebrow">GENERATE ART</div><h3>Web Account</h3><p class="tiny muted">Image generation may use your configured image/OpenRouter balance.</p>
+        <div class="toolbar"><button class="btn" onclick="startArt('cover')">Cover</button><button class="btn" onclick="startArt('character')">Character</button><button class="btn" onclick="startArt('chapter')">Latest Chapter</button></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="card-head"><h3>Media Library</h3><span>${media.length} files</span></div>
+      <div class="card pad" style="border:0;box-shadow:none;background:transparent">
+      ${media.length?`<div class="media-grid">${media.map(m=>`<a class="media-item" href="${esc(m.url)}" target="_blank"><b>${esc(m.name)}</b><span>${esc(m.category)} · ${esc(dt(m.updatedAt))}</span></a>`).join('')}</div>`:`<div class="empty">No generated media yet.</div>`}
+      </div>
+    </div>`;
+  }catch(e){el.innerHTML=errorPanel('Visual Studio unavailable',e.message)}
+}
+
+async function renderPublish(){
+  const el=document.getElementById('page-publish');if(!S.activeNovelId){el.innerHTML=needNovel();return}
+  let meta={};try{meta=(await server('webGetPublicationMetadataFast',S.auth,S.activeNovelId)).publicationMetadata||{}}catch(_){}
+  el.innerHTML=pageHeader('Publish & Export','Prepare your manuscript for export and publication.')+
+  `<div class="grid equal">
+    <div class="card pad"><div class="eyebrow">EXPORT CANON</div><h3>Download-ready files</h3><div class="toolbar"><button class="btn" onclick="exportNovel('txt')">TXT</button><button class="btn" onclick="exportNovel('docx')">DOCX</button><button class="btn" onclick="exportNovel('epub')">EPUB</button></div></div>
+    <div class="card pad"><div class="eyebrow">PUBLICATION METADATA</div><div class="field"><label>PLATFORM</label><select id="publishPlatform"><option value="generic">Generic</option><option value="webnovel">WebNovel</option><option value="scribblehub">ScribbleHub</option><option value="royalroad">Royal Road</option><option value="fizzo">Fizzo</option><option value="wattpad">Wattpad</option></select></div><div style="margin-top:12px"><button class="btn primary" onclick="startPublishMeta()">Generate Metadata</button></div></div>
+  </div>
+  <div class="card pad" style="margin-top:16px"><div class="eyebrow">SOCIAL SHARE</div><div class="share-strip"><button class="share-btn" onclick="shareNovel('facebook',S.activeNovelId)">Facebook</button><button class="share-btn" onclick="shareNovel('x',S.activeNovelId)">𝕏</button><button class="share-btn" onclick="shareNovel('threads',S.activeNovelId)">Threads</button><button class="share-btn" onclick="shareNovel('native',S.activeNovelId)">More…</button><button class="share-btn" onclick="copyShareText(S.activeNovelId)">Copy Caption</button></div></div>
+  <div class="card pad" style="margin-top:16px"><div class="eyebrow">SAVED METADATA</div>${renderObjectSummary(meta)}</div>`;
+}
+
+
+function sharePayloadForNovel(novelId){
+  const n=S.novels.find(x=>x.id===String(novelId||S.activeNovelId))||{},title=n.title||'My Novel';
+  const text=[`I'm writing “${title}” on Smart Novel Forge.`,n.genre?`Genre: ${n.genre}.`:'',n.targetChapters?`Progress: Chapter ${Number(n.latestCanon||0)}/${Number(n.targetChapters)}.`:''].filter(Boolean).join(' ');
+  return {title,text,url:String(location.href||'').split('#')[0]};
+}
+function shareNovel(platform,novelId){
+  const p=sharePayloadForNovel(novelId),t=encodeURIComponent(p.text),u=encodeURIComponent(p.url);
+  if(platform==='facebook')return window.open(`https://www.facebook.com/sharer/sharer.php?u=${u}`,'_blank','noopener,noreferrer');
+  if(platform==='x')return window.open(`https://twitter.com/intent/tweet?text=${t}&url=${u}`,'_blank','noopener,noreferrer');
+  if(platform==='threads')return window.open(`https://www.threads.com/intent/post?text=${t}&url=${u}`,'_blank','noopener,noreferrer');
+  if(navigator.share)return navigator.share({title:p.title,text:p.text,url:p.url}).catch(()=>{});
+  return copyShareText(novelId);
+}
+async function copyShareText(novelId){
+  const p=sharePayloadForNovel(novelId);try{await navigator.clipboard.writeText(p.text+'\n'+p.url);toast('Share caption copied.')}catch(_){modal('Share Caption',`<div class="field"><textarea readonly>${esc(p.text+'\n'+p.url)}</textarea></div>`)}
+}
+function openShareModal(novelId){
+  const p=sharePayloadForNovel(novelId);
+  modal('Share Novel',`<h3>${esc(p.title)}</h3><p class="tiny muted">${esc(p.text)}</p><div class="share-strip"><button class="share-btn" onclick="shareNovel('facebook','${esc(novelId)}')">Facebook</button><button class="share-btn" onclick="shareNovel('x','${esc(novelId)}')">𝕏</button><button class="share-btn" onclick="shareNovel('threads','${esc(novelId)}')">Threads</button><button class="share-btn" onclick="shareNovel('native','${esc(novelId)}')">More…</button></div>`,`<button class="btn ghost" onclick="closeModal()">Close</button>`);
+}
+
+async function renderAi(){
+  const el=document.getElementById('page-ai');
+  el.innerHTML=pageHeader('AI Engine','AI routing and model status, kept out of the writing experience.')+`<div class="skeleton"></div>`;
+  try{
+    const a=await loadAi(true),configured=a.configured||{},models=a.models||{},order=a.order||[];
+    el.innerHTML=pageHeader('AI Engine','AI routing and model status, kept out of the writing experience.',
+      btn('↻ Refresh','renderAi()','ghost'))+
+    `<div class="grid kpis">
+      ${metricKpi('Router',a.routerMode||'-','Routing mode')}
+      ${metricKpi('Last Provider',a.lastProvider||'-','Most recent AI')}
+      ${metricKpi('Usage',typeof a.usage==='object'?(a.usage.total??a.usage.calls??JSON.stringify(a.usage)):a.usage,'Today')}
+      ${metricKpi('Daily Limit',a.dailyLimit||'∞','0 means unlimited')}
+    </div>
+    <div class="grid equal" style="margin-top:16px">
+      <div class="card"><div class="card-head"><h3>Provider Chain</h3><span>${order.length}</span></div><div class="list">
+        ${order.map((p,i)=>`<div class="list-row"><div class="badge-num">${i+1}</div><div class="grow"><b>${esc(prettyKey(p))}</b><p>${esc(models[p]||'')}</p></div><span class="status ${configured[p]?'DONE':'ERROR'}">${configured[p]?'READY':'NO KEY'}</span></div>`).join('')}
+      </div></div>
+      <div class="card pad">
+        <div class="eyebrow">BUDGET MODE</div><h3>${esc(a.mode||'')}</h3><p class="tiny muted">Managed by the Smart Novel Forge server configuration. Web accounts cannot change the global AI budget profile.</p>
+        <div class="section-title">Router State</div>${renderObjectSummary(a.router)}
+      </div>
+    </div>`;
+  }catch(e){el.innerHTML=errorPanel('AI status unavailable',e.message)}
+}
+
+async function renderJobs(){
+  const el=document.getElementById('page-jobs');
+  el.innerHTML=pageHeader('Jobs','Your private Web job history — including Create Novel jobs that do not have a novel ID yet.')+`<div class="skeleton"></div>`;
+  try{
+    const jobs=await loadJobs(true);
+    const counts={active:0,error:0,waiting:0,completed:0};
+    jobs.forEach(j=>{
+      const s=String(j.status||'').toUpperCase();
+      if(s==='QUEUED'||s==='RUNNING')counts.active++;
+      if(s==='WAITING_APPROVAL')counts.waiting++;
+      if(s==='ERROR'||s==='FAILED')counts.error++;
+      if(j.isComplete)counts.completed++;
+    });
+    const scopeLabel=S.jobScope==='all'?'All Jobs':'Current Novel';
+    el.innerHTML=pageHeader('Jobs','Your private Web job history — Telegram Admin jobs are not visible here.',
+      `<button class="btn ${S.jobScope==='all'?'primary':'ghost'}" onclick="setJobScope('all')">All Jobs</button>`+
+      `<button class="btn ${S.jobScope==='novel'?'primary':'ghost'}" onclick="setJobScope('novel')" ${S.activeNovelId?'':'disabled'}>Current Novel</button>`+
+      `<button class="btn ghost" onclick="renderJobs()">↻ Refresh</button>`+
+      `<button class="btn danger" onclick="clearCompletedJobs()" ${counts.completed?'':'disabled'}>Clear Completed (${counts.completed})</button>`)+
+      `<div class="grid kpis">
+        ${metricKpi('Active',counts.active,scopeLabel)}
+        ${metricKpi('Waiting',counts.waiting,'Approval required')}
+        ${metricKpi('Errors',counts.error,'Retry available')}
+        ${metricKpi('Completed',counts.completed,'Safe to clear')}
+      </div>
+      <div class="card" style="margin-top:16px">${jobs.length?`<div class="list">${jobs.map(jobRow).join('')}</div>`:`<div class="empty">No ${scopeLabel.toLowerCase()} yet.</div>`}</div>`;
+  }catch(e){el.innerHTML=errorPanel('Jobs unavailable',e.message)}
+}
+function jobRow(j){
+  const noNovel=!j.novelId;
+  const sub=[j.type,j.stage,j.startChapter?`Ch ${j.startChapter}–${j.endChapter}`:'',noNovel?'Pre-novel job':''].filter(Boolean).join(' · ');
+  return `<div class="list-row">
+    <div class="badge-num">${Number(j.progress||0)}%</div>
+    <div class="grow"><b>${esc(j.label||j.type)}</b><p>${esc(sub)} · ${esc(dt(j.updatedAt||j.createdAt))}</p>${j.error?`<p style="color:#8b3b3b">${esc(clampText(j.error,180))}</p>`:''}</div>
+    <span class="status ${statusClass(j.status)}">${esc(j.status)}</span>
+    <button class="btn small" onclick="openJobDetail('${esc(j.id)}')">Detail</button>
+    ${j.canRetry?`<button class="btn small" onclick="retryJob('${esc(j.id)}')">Retry</button>`:''}
+    <button class="btn small danger" onclick="deleteJob('${esc(j.id)}')">Delete</button>
+  </div>`;
+}
+
+function renderSettings(){
+  const el=document.getElementById('page-settings');
+  const u=S.user||{};
+  el.innerHTML=pageHeader('Settings','Your Web account and private workspace.')+
+  `<div class="grid equal">
+    <div class="card pad">
+      <div class="eyebrow">ACCOUNT</div>
+      <div class="metric-line"><span>Username</span><b>@${esc(u.username||'-')}</b></div>
+      <div class="metric-line"><span>Email</span><b>${esc(u.email||'-')}</b></div>
+      <div class="metric-line"><span>User ID</span><b>${esc(u.id||'-')}</b></div>
+      <div class="metric-line"><span>Version</span><b>${esc(S.version||'-')}</b></div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn danger" onclick="logoutWeb()">Sign Out</button><button class="btn" onclick="logoutAllWeb()">Sign Out All Devices</button></div>
+    </div>
+    <div class="card pad">
+      <div class="eyebrow">PRIVATE WORKSPACE</div>
+      <h3>Your library is isolated by account</h3>
+      <p class="tiny muted">The Web App only returns novels, jobs, chapters, media, exports, roadmap data, and analytics owned by this Web account. Telegram Admin workspaces use a different ownership channel and are not listed here.</p>
+      <div class="metric-line"><span>Database</span><b>${esc(S.databaseName||'-')}</b></div>
+      <div class="metric-line"><span>Visible novels</span><b>${S.novels.length}</b></div>
+      <div class="metric-line"><span>Session storage</span><b>User NovelForge DB</b></div>
+    </div>
+  </div>`;
+}
+
+async function navigate(page,force=false){
+  S.page=page;document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+page)?.classList.add('active');
+  document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+  try{
+    if(page==='dashboard')renderDashboard();
+    else if(page==='novels')renderNovels();
+    else if(page==='writing')renderWriting();
+    else if(page==='chapters'){await loadChapterIndex(force);renderChaptersShell();}
+    else if(page==='roadmap')await renderRoadmap();
+    else if(page==='brain')await renderBrain();
+    else if(page==='canon')await renderCanon();
+    else if(page==='analytics')await renderAnalytics();
+    else if(page==='visual')await renderVisual();
+    else if(page==='publish')await renderPublish();
+    else if(page==='ai')await renderAi();
+    else if(page==='jobs')await renderJobs();
+    else if(page==='settings')renderSettings();
+  }catch(e){toast(e.message,'err')}
+}
+
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));
+
+function openCreateNovel(){
+  modal('Create Novel',
+  `<div class="field"><label>YOUR IDEA</label><textarea id="newIdea" placeholder="Example: Psychological mystery about an epigrapher who discovers a 3000-year-old tomb bearing his own name..."></textarea></div>
+   <div class="form-grid" style="margin-top:12px">
+    <div class="field"><label>LANGUAGE</label><input id="newLang" placeholder="English"></div>
+    <div class="field"><label>TARGET CHAPTERS</label><input id="newTarget" type="number" value="120"></div>
+    <div class="field"><label>GENRE / MOOD</label><input id="newGenre" placeholder="Psychological mystery, time travel"></div>
+    <div class="field"><label>PACING</label><select id="newPacing"><option value="">Auto</option><option>Slow burn</option><option>Balanced</option><option>Fast</option></select></div>
+   </div>`,
+  `<button class="btn ghost" onclick="randomBlueprint()">🎲 Random Concept</button><button class="btn primary" onclick="createBlueprint()">Build Blueprint</button>`);
+}
+async function createBlueprint(){
+  const idea=document.getElementById('newIdea').value.trim();if(idea.length<20)return toast('Write a little more detail first.','err');
+  const opts={language:document.getElementById('newLang').value.trim(),targetChapters:Number(document.getElementById('newTarget').value||120),genre:document.getElementById('newGenre').value.trim(),pacing:document.getElementById('newPacing').value};
+  try{const r=await server('webStartBlueprint',S.auth,idea,opts);closeModal();watchJob(r.jobId,{blueprint:true})}catch(e){toast(e.message,'err')}
+}
+async function randomBlueprint(){
+  try{const opts={language:document.getElementById('newLang').value.trim(),targetChapters:Number(document.getElementById('newTarget').value||120),genre:document.getElementById('newGenre').value.trim(),pacing:document.getElementById('newPacing').value};const r=await server('webRandomBlueprint',S.auth,opts);closeModal();watchJob(r.jobId,{blueprint:true})}catch(e){toast(e.message,'err')}
+}
+function showBlueprint(bp){
+  modal('Blueprint Ready',
+    `<div class="form-grid">
+      <div class="field"><label>TITLE</label><input id="bpTitle" value="${esc(bp.title||'')}"></div>
+      <div class="field"><label>TARGET CHAPTERS</label><input id="bpTarget" type="number" value="${Number(bp.targetChapters||120)}"></div>
+      <div class="field full"><label>DESCRIPTION / PREMISE</label><textarea id="bpDesc">${esc(bp.description||bp.synopsis||bp.premise||'')}</textarea></div>
+      <div class="field full"><label>RAW BLUEPRINT PREVIEW</label>${objectPreview(bp)}</div>
+    </div>`,
+    `<button class="btn ghost" onclick="editBlueprintPrompt()">Edit with AI</button><button class="btn primary" onclick="buildNovelFromBlueprint()">Create Novel Workspace</button>`);
+  window.__currentBlueprint=bp;
+}
+function editBlueprintPrompt(){
+  const bp=window.__currentBlueprint||{};
+  modal('Edit Blueprint',`<div class="field"><label>INSTRUCTION</label><textarea id="bpInstruction" placeholder="Example: Make romance slower and move the first major reveal to after chapter 30."></textarea></div>`,
+  `<button class="btn primary" onclick="runBlueprintEdit()">Apply with AI</button>`);
+  window.__currentBlueprint=bp;
+}
+async function runBlueprintEdit(){
+  const ins=document.getElementById('bpInstruction').value.trim();if(ins.length<3)return;
+  try{const r=await server('webUpdateBlueprint',S.auth,window.__currentBlueprint,ins);closeModal();watchJob(r.jobId,{blueprint:true})}catch(e){toast(e.message,'err')}
+}
+async function buildNovelFromBlueprint(){
+  const bp={...(window.__currentBlueprint||{})};
+  bp.title=document.getElementById('bpTitle')?.value.trim()||bp.title;
+  bp.targetChapters=Number(document.getElementById('bpTarget')?.value||bp.targetChapters||120);
+  const desc=document.getElementById('bpDesc')?.value.trim(); if(desc){bp.description=desc;bp.premise=bp.premise||desc}
+  try{const r=await server('webBuildNovel',S.auth,bp);closeModal();watchJob(r.jobId,{foundation:true})}catch(e){toast(e.message,'err')}
+}
+
+async function startWrite(){
+  const a=Number(document.getElementById('writeStart').value),b=Number(document.getElementById('writeEnd').value);
+  try{const r=await server('webStartWriteRange',S.auth,S.activeNovelId,a,b);watchJob(r.jobId)}catch(e){toast(e.message,'err')}
+}
+async function nextBatch(){try{const r=await server('webNextBatch',S.auth,S.activeNovelId);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function quickAutoWrite(){await navigate('writing')}
+async function startAuto(){
+  const a=Number(document.getElementById('autoStart').value),b=Number(document.getElementById('autoEnd').value);
+  if(!confirm(`Start Full Auto Production Chapter ${a}–${b}?`))return;
+  try{const r=await server('webStartAutoProduction',S.auth,S.activeNovelId,a,b);watchJob(r.jobId)}catch(e){toast(e.message,'err')}
+}
+async function reviewChapter(){
+  const n=Number(document.getElementById('reviewChapter').value);try{const r=await server('webReviewChapter',S.auth,S.activeNovelId,n);watchJob(r.jobId)}catch(e){toast(e.message,'err')}
+}
+async function rewriteChapter(){
+  const n=Number(document.getElementById('rewriteChapter').value),reason=document.getElementById('rewriteReason').value.trim();
+  if(reason.length<5)return toast('Write a clearer rewrite instruction.','err');
+  try{const r=await server('webRewriteChapter',S.auth,S.activeNovelId,n,reason,'');watchJob(r.jobId)}catch(e){toast(e.message,'err')}
+}
+async function chapterDiff(){
+  const n=Number(document.getElementById('reviewChapter').value);
+  try{const r=await server('webGetChapterDiff',S.auth,S.activeNovelId,n);modal(`Chapter ${n} Diff`,objectPreview(r.diff),`<button class="btn" onclick="closeModal()">Close</button>`)}catch(e){toast(e.message,'err')}
+}
+
+async function openChapter(n){await navigate('chapters');setTimeout(()=>loadChapter(n),30)}
+async function loadChapter(n){
+  document.querySelectorAll('.chapter-btn').forEach(b=>b.classList.remove('active'));document.getElementById('chapterBtn-'+n)?.classList.add('active');
+  const box=document.getElementById('chapterReader');if(!box)return;box.innerHTML=`<div class="empty"><div class="spinner" style="margin:auto"></div></div>`;
+  try{
+    const r=await server('webGetChapter',S.auth,S.activeNovelId,n);
+    box.innerHTML=`<div class="card-head"><div><h3>Chapter ${n}${r.title?' — '+esc(r.title):''}</h3><span>${esc(r.status||'')}</span></div><div class="toolbar"><button class="btn small" onclick="reviewSpecific(${n})">Review</button><button class="btn small ghost" onclick="diffSpecific(${n})">Diff</button></div></div><article class="chapter-text">${esc(r.text||'')}</article>`;
+  }catch(e){box.innerHTML=errorPanel('Chapter unavailable',e.message)}
+}
+async function reviewSpecific(n){try{const r=await server('webReviewChapter',S.auth,S.activeNovelId,n);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function diffSpecific(n){try{const r=await server('webGetChapterDiff',S.auth,S.activeNovelId,n);modal(`Chapter ${n} Diff`,objectPreview(r.diff))}catch(e){toast(e.message,'err')}}
+
+function openReRoadmap(){
+  modal('Adaptive ReRoadMap',
+  `<p class="tiny muted">Generate a new future roadmap without rewriting existing Canon.</p>
+   <div class="field"><label>MODE</label><select id="rrMode" onchange="document.getElementById('rrPremiseWrap').classList.toggle('hidden',this.value!=='WHAT_IF')"><option value="REALIGN">Realign Canon</option><option value="WHAT_IF">What-if Sandbox</option></select></div>
+   <div class="field" style="margin-top:10px"><label>STRATEGY</label><select id="rrStrategy"><option value="ADAPT">Adapt naturally</option><option value="RETURN">Return toward original roadmap</option><option value="NEW">New direction</option></select></div>
+   <div id="rrPremiseWrap" class="field hidden" style="margin-top:10px"><label>WHAT-IF PREMISE</label><textarea id="rrPremise" placeholder="What if Shu never entered Nereth?"></textarea></div>`,
+  `<button class="btn primary" onclick="startReRoadmap()">Generate Roadmap</button>`);
+}
+async function startReRoadmap(){
+  const mode=document.getElementById('rrMode').value,strategy=document.getElementById('rrStrategy').value,premise=document.getElementById('rrPremise')?.value||'';
+  try{const r=await server('webStartReRoadmap',S.auth,S.activeNovelId,mode,strategy,premise);closeModal();watchJob(r.jobId||r.id)}catch(e){toast(e.message,'err')}
+}
+async function viewRoadmapVersion(id){
+  try{
+    const r=await server('webGetRoadmapVersion',S.auth,S.activeNovelId,id);
+    modal(`Roadmap ${id}`,`<div class="eyebrow">ANALYSIS</div>${renderObjectSummary(r.analysis)}<div class="section-title">DIFF</div>${renderObjectSummary(r.diff)}<div class="section-title">PLANS</div>${renderObjectSummary((r.plans||[]).slice(0,20))}`,
+    `<button class="btn ghost" onclick="saveWhatIf('${esc(id)}')">Save What-if</button><button class="btn primary" onclick="activateRoadmap('${esc(id)}')">Activate</button><button class="btn danger" onclick="discardRoadmap('${esc(id)}')">Discard</button>`);
+  }catch(e){toast(e.message,'err')}
+}
+async function activateRoadmap(id){if(!confirm(`Activate roadmap ${id}? Existing Canon remains unchanged.`))return;try{await server('webActivateReRoadmap',S.auth,S.activeNovelId,id);toast('Roadmap activated');closeModal();S.studio=null;renderRoadmap()}catch(e){toast(e.message,'err')}}
+async function saveWhatIf(id){try{await server('webSaveReRoadmapAsWhatIf',S.auth,S.activeNovelId,id);toast('Saved as What-if');closeModal()}catch(e){toast(e.message,'err')}}
+async function discardRoadmap(id){if(!confirm(`Discard ${id}?`))return;try{await server('webDiscardReRoadmap',S.auth,S.activeNovelId,id);toast('Roadmap discarded');closeModal();S.studio=null;renderRoadmap()}catch(e){toast(e.message,'err')}}
+
+function openHealthCheck(){
+  const n=activeNovel()||S.workspace?.novel||{};
+  modal('Run Canon Health',`<div class="form-grid"><div class="field"><label>START</label><input id="healthStart" type="number" value="1"></div><div class="field"><label>END</label><input id="healthEnd" type="number" value="${Number(n.latestCanon||0)}"></div></div>`,
+  `<button class="btn primary" onclick="runHealth()">Run Audit</button>`);
+}
+async function runHealth(){const a=Number(document.getElementById('healthStart').value),b=Number(document.getElementById('healthEnd').value);try{const r=await server('webStartCanonHealth',S.auth,S.activeNovelId,a,b);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+function openStyleAnalysis(){modal('Style Lock Analysis',`<div class="field"><label>OPTIONAL CUSTOM INSTRUCTION</label><textarea id="styleIns" placeholder="Leave blank to analyze current prose, or add rules such as: restrained dark narration, medium paragraphs, no modern slang."></textarea></div>`,`<button class="btn primary" onclick="startStyle()">Analyze Style</button>`)}
+async function startStyle(){try{const r=await server('webStartStyleAnalysis',S.auth,S.activeNovelId,document.getElementById('styleIns').value);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function startLore(){try{const r=await server('webStartLoreBuild',S.auth,S.activeNovelId);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function startAnalyticsBackfill(){try{const r=await server('webStartAnalyticsBackfill',S.auth,S.activeNovelId);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function startVisualBible(){try{const r=await server('webStartVisualBible',S.auth,S.activeNovelId);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function startArt(kind){try{const r=await server('webStartArt',S.auth,S.activeNovelId,kind,{});watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function startPublishMeta(){const p=document.getElementById('publishPlatform').value;try{const r=await server('webStartPublicationMetadata',S.auth,S.activeNovelId,p);watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function exportNovel(format){
+  showLoading(true);try{const r=await server('webExportNovel',S.auth,S.activeNovelId,format);toast(`${r.name} ready`);modal('Export Ready',`<p><b>${esc(r.name)}</b></p><p class="tiny muted">Format: ${esc(r.format)}</p>`,`<a class="btn primary" href="${esc(r.url)}" target="_blank">Open File</a>`)}catch(e){toast(e.message,'err')}finally{showLoading(false)}
+}
+<!-- v5.1: removed dead setAiMode() (never called; server always throws for it). -->
+
+async function watchJob(jobId,opts={}){
+  if(!jobId)return toast('Job ID not returned.','err');
+  modal('Job Progress',`<div id="jobModalBody"><div class="empty"><div class="spinner" style="margin:auto"></div><br>Loading job…</div></div>`,`<button class="btn ghost" onclick="closeModal()">Run in Background</button>`);
+  // v5.1 fix: generation token — only the newest watcher may write to the modal.
+  const my=++window.__NF_JOB_WATCH||(window.__NF_JOB_WATCH=1);
+  let stopped=false;
+  const tick=async()=>{
+    if(stopped||my!==window.__NF_JOB_WATCH)return;
+    try{
+      let j=await server('webPumpJob',S.auth,jobId);
+      const box=document.getElementById('jobModalBody');
+      if(box)box.innerHTML=renderJobModal(j);
+      if(j.blueprint && ['DONE','READY','WAITING_APPROVAL'].includes(String(j.status))){
+        stopped=true; closeModal(); showBlueprint(j.blueprint); return;
+      }
+      if(['DONE','APPROVED','ERROR','FAILED','REJECTED','WAITING_APPROVAL'].includes(String(j.status))){
+        stopped=true;
+        await reloadAfterJob();
+        if(j.status==='WAITING_APPROVAL'){
+          showApprovalForJob(j);
+        }else if(j.status==='DONE'||j.status==='APPROVED'){
+          toast('Job complete');
+        }else{
+          toast(j.error||'Job stopped','err',6000);
+          const foot=document.getElementById('modalFoot');
+          if(foot)foot.innerHTML=
+            `${j.canRetry?`<button class="btn primary" onclick="closeModal();retryJob('${esc(j.id)}')">Retry from checkpoint</button>`:''}`+
+            `<button class="btn danger" onclick="closeModal();deleteJob('${esc(j.id)}')">Delete Job</button>`+
+            `<button class="btn ghost" onclick="closeModal()">Close</button>`;
+        }
+        return;
+      }
+      setTimeout(tick,3500);
+    }catch(e){stopped=true;toast(e.message,'err')}
+  };
+  tick();
+}
+function renderJobModal(j){
+  return `<div class="job-title"><div><div class="eyebrow">${esc(j.type)}</div><h3 style="margin:7px 0">${esc(j.label||j.stage)}</h3></div><span class="status ${statusClass(j.status)}">${esc(j.status)}</span></div>
+  <div class="metric-line"><span>Job ID</span><b>${esc(j.id)}</b></div>
+  <div class="metric-line"><span>Workspace</span><b>${j.novelId?esc(j.novelId):'Pre-novel / Create Novel'}</b></div>
+  ${j.startChapter?`<div class="metric-line"><span>Range</span><b>Ch ${j.startChapter}–${j.endChapter}</b></div>`:''}
+  <div class="metric-line"><span>Stage</span><b>${esc(j.stage)}</b></div>
+  <div class="metric-line"><span>Created</span><b>${esc(dt(j.createdAt))}</b></div>
+  <div class="metric-line"><span>Updated</span><b>${esc(dt(j.updatedAt))}</b></div>
+  ${j.retryCount?`<div class="metric-line"><span>Manual retries</span><b>${Number(j.retryCount)}</b></div>`:''}
+  <div style="display:flex;justify-content:space-between;margin:18px 0 7px;font-size:11px"><span class="muted">Progress</span><b>${Number(j.progress||0)}%</b></div>
+  <div class="progress large"><i style="width:${Number(j.progress||0)}%"></i></div>
+  ${j.error?`<div class="health-item bad">${esc(j.error)}</div>`:''}`;
+}
+function showApprovalForJob(j){
+  if(j.type==='FOUNDATION'){
+    modal('Foundation Approval',`<p class="muted">Bible + Roadmap foundation is ready for approval.</p>${renderJobModal(j)}`,
+      `<button class="btn ghost" onclick="reviseFoundationPrompt('${esc(j.id)}')">Revise</button><button class="btn primary" onclick="approveFoundation('${esc(j.id)}')">Approve & Continue</button>`);
+  }else if(j.type==='GENERATE_BATCH'){
+    openBatchPreview(j.id);
+  }else{
+    modal('Approval Required',renderJobModal(j),`<button class="btn" onclick="closeModal()">Close</button>`);
+  }
+}
+async function approveFoundation(id){try{const r=await server('webApproveFoundation',S.auth,id);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+function reviseFoundationPrompt(id){modal('Revise Foundation',`<div class="field"><label>REVISION INSTRUCTION</label><textarea id="foundationReason"></textarea></div>`,`<button class="btn primary" onclick="reviseFoundation('${esc(id)}')">Revise</button>`)}
+async function reviseFoundation(id){try{const r=await server('webReviseFoundation',S.auth,id,document.getElementById('foundationReason').value);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function openBatchPreview(id){
+  try{
+    const r=await server('webGetBatchPreview',S.auth,id);
+    const ch=(r.chapters||[]).map(c=>`<div class="health-item"><b>Chapter ${c.number} — ${esc(c.title||'')}</b><div class="tiny muted">${esc(clampText(c.text,500))}</div></div>`).join('');
+    modal(`Batch Preview Ch ${r.start}–${r.end}`,`${renderObjectSummary(r.review)}<div class="section-title">CHAPTERS</div>${ch}`,
+      `<button class="btn ghost" onclick="reviseBatchPrompt('${esc(id)}')">Revise</button><button class="btn danger" onclick="regenerateBatch('${esc(id)}')">Regenerate</button><button class="btn primary" onclick="approveBatch('${esc(id)}')">Approve → Canon</button>`);
+  }catch(e){toast(e.message,'err')}
+}
+async function approveBatch(id){try{const r=await server('webApproveBatch',S.auth,id);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+function reviseBatchPrompt(id){modal('Revise Batch',`<div class="field"><label>REVISION INSTRUCTION</label><textarea id="batchReason"></textarea></div>`,`<button class="btn primary" onclick="reviseBatch('${esc(id)}')">Rewrite Batch</button>`)}
+async function reviseBatch(id){try{const r=await server('webReviseBatch',S.auth,id,document.getElementById('batchReason').value);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function regenerateBatch(id){if(!confirm('Regenerate the entire batch?'))return;try{const r=await server('webRegenerateBatch',S.auth,id);closeModal();watchJob(r.jobId)}catch(e){toast(e.message,'err')}}
+async function setJobScope(scope){
+  if(scope==='novel'&&!S.activeNovelId)return toast('Select a novel first.','err');
+  S.jobScope=scope==='novel'?'novel':'all';S.jobs=[];await renderJobs();
+}
+async function openJobDetail(id){
+  try{
+    const j=await server('webGetJob',S.auth,id);
+    modal(`Job ${j.id}`,renderJobModal(j),
+      `${['QUEUED','RUNNING'].includes(String(j.status))?`<button class="btn primary" onclick="closeModal();watchJob('${esc(j.id)}')">Watch</button>`:''}`+
+      `${j.canRetry?`<button class="btn" onclick="closeModal();retryJob('${esc(j.id)}')">Retry</button>`:''}`+
+      `<button class="btn danger" onclick="closeModal();deleteJob('${esc(j.id)}')">Delete</button>`+
+      `<button class="btn ghost" onclick="closeModal()">Close</button>`);
+  }catch(e){toast(e.message,'err')}
+}
+async function retryJob(id){
+  try{
+    const r=await server('webRetryJob',S.auth,id);
+    S.jobs=[];toast('Job returned to its last checkpoint.');
+    await renderJobs();
+    if(r.jobId)watchJob(r.jobId);
+  }catch(e){toast(e.message,'err')}
+}
+async function deleteJob(id){
+  if(!confirm('Delete this job record? Novel, Canon, Bible, Roadmap and files are not deleted.'))return;
+  try{await server('webDeleteJob',S.auth,id);S.jobs=[];toast('Job record deleted');await renderJobs()}catch(e){toast(e.message,'err')}
+}
+async function clearCompletedJobs(){
+  const novelId=S.jobScope==='novel'?(S.activeNovelId||''):'';
+  if(!confirm('Clear all 100% completed job records in this view? Novel files, Canon, Bible, Roadmap and exports will remain untouched.'))return;
+  try{
+    const r=await server('webClearCompletedJobs',S.auth,novelId);
+    S.jobs=[];toast(`${r.deleted||0} completed job(s) cleared.`);
+    await renderJobs();
+  }catch(e){toast(e.message,'err')}
+}
+async function reloadAfterJob(){
+  try{
+    const r=await server('webLoadLibrary',S.auth);S.novels=r.novels||[];S.databaseName=r.databaseName||S.databaseName||'';
+    if(S.activeNovelId&&!S.novels.some(n=>n.id===S.activeNovelId))S.activeNovelId=S.novels[0]?.id||'';
+    fillNovelSelect();document.getElementById('novelSelect').value=S.activeNovelId;
+    S.workspace=null;S.chapterIndex=null;S.studio=null;S.analytics=null;S.jobs=[];
+    renderAllBasic();
+  }catch(_){}
+}
+
+function showJsonModal(jsonString,title='Data'){
+  try{modal(title,objectPreview(JSON.parse(jsonString)))}catch(_){modal(title,`<div class="codebox">${esc(jsonString)}</div>`)}
+}
+function normalizeAuthError(msg){
+  const s=String(msg||'');
+  if(/AUTH_REQUIRED|SESSION_EXPIRED|SESSION_INVALID/.test(s))return 'Please sign in to continue.';
+  if(/ACCOUNT_DISABLED/.test(s))return 'This account is disabled.';
+  return s.replace(/^Exception:\s*/,'');
+}
+function showAuthScreen(){
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('bottomNav').classList.add('hidden');
+  switchAuth('login');
+}
+function hideAuthScreen(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.remove('hidden');
+  document.getElementById('bottomNav').classList.remove('hidden');
+}
+function switchAuth(mode){
+  const register=mode==='register';
+  document.getElementById('tabLogin').classList.toggle('active',!register);
+  document.getElementById('tabRegister').classList.toggle('active',register);
+  document.getElementById('loginForm').classList.toggle('active',!register);
+  document.getElementById('registerForm').classList.toggle('active',register);
+  document.getElementById('authTitle').textContent=register?'Create your account':'Welcome back';
+  document.getElementById('authSubtitle').textContent=register?'Your novels and jobs will be isolated under this account.':'Sign in with your username or email.';
+}
+async function submitLogin(ev){
+  ev.preventDefault();const identifier=document.getElementById('loginIdentifier').value.trim(),password=document.getElementById('loginPassword').value;
+  showLoading(true);
+  try{
+    const r=await server('webLogin',identifier,password);S.auth=r.auth;applySession(r,r.auth);showLoading(false);
+    renderLibraryLoading();loadUserLibrary().catch(e=>{toast(normalizeAuthError(e.message),'err',6500);renderLibraryError(e.message)});
+  }catch(e){toast(normalizeAuthError(e.message),'err',6500)}finally{showLoading(false)}
+}
+
+async function submitRegister(ev){
+  ev.preventDefault();
+  const username=document.getElementById('registerUsername').value.trim(),email=document.getElementById('registerEmail').value.trim(),password=document.getElementById('registerPassword').value,confirmPassword=document.getElementById('registerConfirm').value;
+  if(password!==confirmPassword)return toast('Password confirmation does not match.','err');
+  showLoading(true);
+  try{
+    const r=await server('webRegister',username,email,password);S.auth=r.auth;applySession(r,r.auth);showLoading(false);
+    renderLibraryLoading();loadUserLibrary().catch(e=>{toast(normalizeAuthError(e.message),'err',6500);renderLibraryError(e.message)});
+  }catch(e){toast(normalizeAuthError(e.message),'err',6500)}finally{showLoading(false)}
+}
+
+async function logoutWeb(){
+  try{if(S.auth)await server('webLogout',S.auth)}catch(_){}
+  localStorage.removeItem(LS_AUTH);localStorage.removeItem(LS_NOVEL);
+  S.auth=null;S.user=null;S.novels=[];S.activeNovelId='';
+  showAuthScreen();
+  toast('Signed out.');
+}
+
+// v5.1: revoke every session for this account (server: webLogoutAll).
+async function logoutAllWeb(){
+  if(!confirm('Sign out from ALL devices and browsers?'))return;
+  try{if(S.auth)await server('webLogoutAll',S.auth)}catch(e){toast(e.message,'err');return}
+  localStorage.removeItem(LS_AUTH);localStorage.removeItem(LS_NOVEL);
+  S.auth=null;S.user=null;S.novels=[];S.activeNovelId='';
+  showAuthScreen();
+  toast('Signed out everywhere.');
+}
+
+window.addEventListener('load',boot);
+</script>
+</body>
+</html>
